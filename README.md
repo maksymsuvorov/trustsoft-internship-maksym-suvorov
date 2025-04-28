@@ -1,1 +1,0 @@
-# trustsoft-internship-maksym-suvorov
