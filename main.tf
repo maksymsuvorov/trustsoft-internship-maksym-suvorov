@@ -18,7 +18,7 @@ resource "aws_vpc" "vpc" {
 
 
 resource "aws_subnet" "subnet-public-1" {
-    vpc_id = "${aws_vpc.vpc.id}"
+    vpc_id = aws_vpc.vpc.id
     cidr_block = "10.0.1.0/24"
     map_public_ip_on_launch = "true"
     availability_zone = "eu-west-1a"
@@ -28,7 +28,7 @@ resource "aws_subnet" "subnet-public-1" {
 }
 
 resource "aws_subnet" "subnet-public-2" {
-    vpc_id = "${aws_vpc.vpc.id}"
+    vpc_id = aws_vpc.vpc.id
     cidr_block = "10.0.2.0/24"
     map_public_ip_on_launch = "true"
     availability_zone = "eu-west-1b"
@@ -38,7 +38,7 @@ resource "aws_subnet" "subnet-public-2" {
 }
 
 resource "aws_subnet" "subnet-private-1" {
-    vpc_id = "${aws_vpc.vpc.id}"
+    vpc_id = aws_vpc.vpc.id
     cidr_block = "10.0.11.0/24"
     availability_zone = "eu-west-1a"
     tags = {
@@ -47,7 +47,7 @@ resource "aws_subnet" "subnet-private-1" {
 }
 
 resource "aws_subnet" "subnet-private-2" {
-    vpc_id = "${aws_vpc.vpc.id}"
+    vpc_id = aws_vpc.vpc.id
     cidr_block = "10.0.12.0/24"
     availability_zone = "eu-west-1b"
     tags = {
@@ -139,4 +139,43 @@ resource "aws_route_table" "private-subnet-rt-2" {
   tags = {
     Name: "private-subnet-rt-2-internship-maksym"
   }
+}
+
+resource "aws_security_group" "alb-sg" {
+  name= "security-group-internship-maksym"
+  vpc_id = aws_vpc.vpc.id
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "ec2-sg" {
+  name = "ec2-sg-internship-maksym"
+  vpc_id = aws_vpc.vpc.id
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = [aws_security_group.alb-sg.id]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
 }
