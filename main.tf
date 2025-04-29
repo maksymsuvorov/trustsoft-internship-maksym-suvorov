@@ -141,8 +141,9 @@ resource "aws_route_table" "private-subnet-rt-2" {
   }
 }
 
+
 resource "aws_security_group" "alb-sg" {
-  name= "security-group-internship-maksym"
+  name= "alb-sg-internship-maksym"
   vpc_id = aws_vpc.vpc.id
 
   ingress {
@@ -177,5 +178,32 @@ resource "aws_security_group" "ec2-sg" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
 
+
+resource "aws_iam_role" "ssm-ec2-role" {
+  name = "iam-role-internship-maksym"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "ssm-instance-profile" {
+  name = "ssm-ec2-instance-profile-internship-maksym"
+  role = aws_iam_role.ssm-ec2-role.name
+}
+
+resource "aws_iam_role_policy_attachment" "ssm-policy" {
+  role = aws_iam_role.ssm-ec2-role.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
