@@ -5,6 +5,16 @@ terraform {
       version = "5.81.0"
     }
   }
+  backend "s3" {
+    bucket         = "s3-remote-backend-internship-maksym"
+    key            = "terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "dynamodb-state-lock-table-internship-maksym"
+  }
+}
+
+provider "aws" {
+  region = "eu-west-1"
 }
 
 
@@ -307,7 +317,7 @@ resource "aws_instance" "ec2-2" {
     #!/bin/bash
     yum update -y
     yum install -y httpd
-    echo "<h1>Hello from EC2 instance 1</h1>" > /var/www/html/index.html
+    echo "<h1>Hello from EC2 instance 2</h1>" > /var/www/html/index.html
     systemctl enable httpd
     systemctl start httpd
   EOF
@@ -315,5 +325,36 @@ resource "aws_instance" "ec2-2" {
 
   tags = {
     Name: "ec2-2-internship-maksym"
+  }
+}
+
+
+resource "aws_dynamodb_table" "terraform-lock" {
+  name           = "dynamodb-state-lock-table-internship-maksym"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "LockID"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+  tags = {
+    "Name" = "DynamoDB Terraform State Lock Table"
+  }
+}
+
+resource "aws_s3_bucket" "s3-bucket" {
+  bucket = "s3-remote-backend-internship-maksym"
+
+  tags = {
+    Name = "S3 Remote Terraform State Store"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "bucket_versioning" {  
+  bucket = aws_s3_bucket.s3-bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
 }
