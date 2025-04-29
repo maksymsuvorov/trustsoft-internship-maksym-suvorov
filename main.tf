@@ -78,6 +78,17 @@ resource "aws_route_table" "public-subnet-rt" {
   }
 }
 
+resource "aws_route_table_association" "public-subnet-assoc-1" {
+  subnet_id      = aws_subnet.subnet-public-1.id
+  route_table_id = aws_route_table.public-subnet-rt.id
+}
+
+resource "aws_route_table_association" "public-subnet-assoc-2" {
+  subnet_id      = aws_subnet.subnet-public-2.id
+  route_table_id = aws_route_table.public-subnet-rt.id
+}
+
+
 
 resource "aws_eip" "nat-eip-1" {
   domain = "vpc"
@@ -140,6 +151,17 @@ resource "aws_route_table" "private-subnet-rt-2" {
     Name: "private-subnet-rt-2-internship-maksym"
   }
 }
+
+resource "aws_route_table_association" "private-subnet-assoc-1" {
+  subnet_id      = aws_subnet.subnet-private-1.id
+  route_table_id = aws_route_table.private-subnet-rt-1.id
+}
+
+resource "aws_route_table_association" "private-subnet-assoc-2" {
+  subnet_id      = aws_subnet.subnet-private-2.id
+  route_table_id = aws_route_table.private-subnet-rt-2.id
+}
+
 
 
 resource "aws_security_group" "alb-sg" {
@@ -248,5 +270,50 @@ resource "aws_lb_listener" "lb-listener" {
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.lb-tg.arn
+  }
+}
+
+
+resource "aws_instance" "ec2-1" {
+  ami = "ami-0ce8c2b29fcc8a346"
+  instance_type = "t2.micro"
+  subnet_id = aws_subnet.subnet-private-1.id
+  vpc_security_group_ids = [aws_security_group.ec2-sg.id]
+  iam_instance_profile = aws_iam_instance_profile.ssm-instance-profile.name
+
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y httpd
+    echo "<h1>Hello from EC2 instance 1</h1>" > /var/www/html/index.html
+    systemctl enable httpd
+    systemctl start httpd
+  EOF
+  )
+
+  tags = {
+    Name: "ec2-1-internship-maksym"
+  }
+}
+
+resource "aws_instance" "ec2-2" {
+  ami = "ami-0ce8c2b29fcc8a346"
+  instance_type = "t2.micro"
+  subnet_id = aws_subnet.subnet-private-2.id
+  vpc_security_group_ids = [aws_security_group.ec2-sg.id]
+  iam_instance_profile = aws_iam_instance_profile.ssm-instance-profile.name
+
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y httpd
+    echo "<h1>Hello from EC2 instance 1</h1>" > /var/www/html/index.html
+    systemctl enable httpd
+    systemctl start httpd
+  EOF
+  )
+
+  tags = {
+    Name: "ec2-2-internship-maksym"
   }
 }
