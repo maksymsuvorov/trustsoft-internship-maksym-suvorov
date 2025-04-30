@@ -20,7 +20,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2-1-cpu" {
   namespace           = "AWS/EC2"
   period              = 60                       # Check every 60 seconds
   statistic           = "Average"
-  threshold           = 2.4                      # Threshold to trigger alarm (very low for demo/testing)
+  threshold           = 3                        # Threshold to trigger alarm (very low for demo/testing)
   treat_missing_data  = "notBreaching"
   insufficient_data_actions = []                 # Don’t alert on missing data
   alarm_actions       = [aws_sns_topic.sns-topic.arn]  # Send alert to SNS
@@ -43,7 +43,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2-2-cpu" {
   namespace           = "AWS/EC2"
   period              = 60
   statistic           = "Average"
-  threshold           = 2.4
+  threshold           = 3
   treat_missing_data  = "notBreaching"
   insufficient_data_actions = []
   alarm_actions       = [aws_sns_topic.sns-topic.arn]
