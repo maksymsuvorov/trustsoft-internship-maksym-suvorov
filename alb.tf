@@ -16,6 +16,18 @@ resource "aws_lb_target_group" "lb-tg" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "ec2-1-attachment" {
+  target_group_arn = aws_lb_target_group.lb-tg.arn
+  target_id        = aws_instance.ec2-1.id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "ec2-2-attachment" {
+  target_group_arn = aws_lb_target_group.lb-tg.arn
+  target_id        = aws_instance.ec2-2.id
+  port             = 80
+}
+
 resource "aws_lb" "lb" {
   name = "lb-internship-maksym"
   internal = false

@@ -14,7 +14,9 @@ resource "aws_instance" "ec2-1" {
     systemctl start amazon-ssm-agent
     
     yum install -y httpd
-    echo "<h1>Hello from EC2 instance 1</h1>" > /var/www/html/index.html
+    
+    echo "<h1>Hello from EC2 instance $(hostname)</h1>" > /var/www/html/index.html
+
     systemctl enable httpd
     systemctl start httpd
   EOF
@@ -41,7 +43,9 @@ resource "aws_instance" "ec2-2" {
     systemctl start amazon-ssm-agent
 
     yum install -y httpd
-    echo "<h1>Hello from EC2 instance 2</h1>" > /var/www/html/index.html
+
+    echo "<h1>Hello from EC2 instance $(hostname)</h1>" > /var/www/html/index.html
+
     systemctl enable httpd
     systemctl start httpd
   EOF
