@@ -1,31 +1,91 @@
-# List of email addresses that will receive CloudWatch alarm notifications via SNS
-variable "email_address" {
-  description = "List of emails for CloudWatch alarm notifications"
-  type        = list(string)
-  default     = [
-    "maksym.suvorov@trustsoft.eu",
-    "vladislav.yurikov@trustsoft.eu"
-  ]
-}
+###############################################################################
+# Provider & Backend Settings
+###############################################################################
 
-# Default AWS region to deploy resources in
 variable "region" {
-  description = "Default AWS region to deploy the infrastructure"
+  description = "AWS Region where all resources will be created"
   type        = string
   default     = "eu-west-1"
 }
 
-# Availability Zone 1
-variable "availability-zone-1" {
-  description = "Primary availability zone (AZ 1)"
+variable "backend_bucket" {
+  description = "Name of the S3 bucket used to store Terraform state"
   type        = string
-  default     = "eu-west-1a"
+  default = "s3-remote-backend-internship-maksym"
 }
 
-# Availability Zone 2
-variable "availability-zone-2" {
-  description = "Secondary availability zone (AZ 2)"
+variable "backend_dynamodb_table" {
+  description = "Name of the DynamoDB table used for Terraform state locking"
   type        = string
-  default     = "eu-west-1b"
+  default = "dynamodb-state-lock-table-internship-maksym"
 }
 
+###############################################################################
+# Networking Module Inputs
+###############################################################################
+
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidrs" {
+  description = "List of CIDR blocks for public subnets"
+  type        = list(string)
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "private_subnet_cidrs" {
+  description = "List of CIDR blocks for private subnets"
+  type        = list(string)
+  default = ["10.0.11.0/24", "10.0.12.0/24"]
+}
+
+variable "availability_zones" {
+  description = "List of Availability Zones to distribute subnets and NAT Gateways"
+  type        = list(string)
+  default = ["eu-west-1a", "eu-west-1b"]
+}
+
+###############################################################################
+# Security Module Inputs
+###############################################################################
+
+variable "alb_allowed_cidrs" {
+  description = "List of CIDR blocks permitted to connect to the ALB"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+###############################################################################
+# Compute Module Inputs
+###############################################################################
+
+variable "ami_id" {
+  description = "AMI ID to use for EC2 instances"
+  type        = string
+  default = "ami-0ce8c2b29fcc8a346"
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "user_data_file" {
+  description = "Path to the bootstrap script for EC2"
+  type        = string
+  default     = "scripts/userdata.sh"
+}
+
+###############################################################################
+# Monitoring Module Inputs
+###############################################################################
+
+variable "email_addresses" {
+  description = "List of email addresses to receive CloudWatch alarm notifications"
+  type        = list(string)
+  default = ["maksym.suvorov@trustsoft.eu"]
+}

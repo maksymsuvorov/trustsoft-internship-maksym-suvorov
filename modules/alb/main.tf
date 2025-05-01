@@ -1,9 +1,9 @@
 # Target Group for EC2 instances (used by ALB)
-resource "aws_lb_target_group" "lb-tg" {
+resource "aws_lb_target_group" "lb_tg" {
   name        = "lb-tg-internship-maksym"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = var.vpc_id
   target_type = "instance"  # Targets are EC2 instance IDs
 
   # Health check settings for the target group
@@ -19,16 +19,16 @@ resource "aws_lb_target_group" "lb-tg" {
 }
 
 # Attach EC2-1 to the target group
-resource "aws_lb_target_group_attachment" "ec2-1-attachment" {
-  target_group_arn = aws_lb_target_group.lb-tg.arn
-  target_id        = aws_instance.ec2-1.id
+resource "aws_lb_target_group_attachment" "ec2_1_attachment" {
+  target_group_arn = aws_lb_target_group.lb_tg.arn
+  target_id        = var.target_instance_ids[0]
   port             = 80  # The port the app is listening on inside the instance
 }
 
 # Attach EC2-2 to the target group
-resource "aws_lb_target_group_attachment" "ec2-2-attachment" {
-  target_group_arn = aws_lb_target_group.lb-tg.arn
-  target_id        = aws_instance.ec2-2.id
+resource "aws_lb_target_group_attachment" "ec2_2_attachment" {
+  target_group_arn = aws_lb_target_group.lb_tg.arn
+  target_id        = var.target_instance_ids[1]
   port             = 80
 }
 
@@ -37,17 +37,14 @@ resource "aws_lb" "lb" {
   name               = "lb-internship-maksym"
   internal           = false                      # Internet-facing load balancer
   load_balancer_type = "application"              # Layer 7 LB (HTTP/HTTPS)
-  security_groups    = [aws_security_group.alb-sg.id]  # Allow port 80 inbound
-  subnets = [
-    aws_subnet.subnet-public-1.id,
-    aws_subnet.subnet-public-2.id
-  ]
+  security_groups    = [var.security_group_id]  # Allow port 80 inbound
+  subnets = var.public_subnet_ids
 
   enable_deletion_protection = false              # Can be set true in production
 }
 
 # Listener for ALB on port 80 (HTTP)
-resource "aws_lb_listener" "lb-listener" {
+resource "aws_lb_listener" "lb_listener" {
   load_balancer_arn = aws_lb.lb.arn
   port              = 80
   protocol          = "HTTP"
@@ -55,7 +52,7 @@ resource "aws_lb_listener" "lb-listener" {
   # Default action is to forward all traffic to the EC2 target group
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.lb-tg.arn
+    target_group_arn = aws_lb_target_group.lb_tg.arn
   }
 }
 

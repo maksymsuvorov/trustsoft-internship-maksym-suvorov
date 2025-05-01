@@ -1,18 +1,18 @@
 # Create an SNS topic for CPU utilization alerts
-resource "aws_sns_topic" "sns-topic" {
+resource "aws_sns_topic" "sns_topic" {
   name = "cpu-utilization-alert-internship-maksym"
 }
 
 # Subscribe email addresses to the SNS topic
-resource "aws_sns_topic_subscription" "topic-email-sub" {
-  count      = length(var.email_address)       # Supports multiple email addresses
-  topic_arn  = aws_sns_topic.sns-topic.arn
+resource "aws_sns_topic_subscription" "topic_email_sub" {
+  count      = length(var.email_addresses)       # Supports multiple email addresses
+  topic_arn  = aws_sns_topic.sns_topic.arn
   protocol   = "email"
-  endpoint   = var.email_address[count.index]  # Each email will receive alerts
+  endpoint   = var.email_addresses[count.index]  # Each email will receive alerts
 }
 
 # CloudWatch Alarm for EC2 Instance 1 CPU utilization
-resource "aws_cloudwatch_metric_alarm" "ec2-1-cpu" {
+resource "aws_cloudwatch_metric_alarm" "ec2_1_cpu" {
   alarm_name          = "ec2-1-cpu-utilization-internship-maksym"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 2                        # Breach must happen twice
@@ -23,10 +23,10 @@ resource "aws_cloudwatch_metric_alarm" "ec2-1-cpu" {
   threshold           = 3                        # Threshold to trigger alarm (very low for demo/testing)
   treat_missing_data  = "notBreaching"
   insufficient_data_actions = []                 # Don’t alert on missing data
-  alarm_actions       = [aws_sns_topic.sns-topic.arn]  # Send alert to SNS
+  alarm_actions       = [aws_sns_topic.sns_topic.arn]  # Send alert to SNS
 
   dimensions = {
-    InstanceId = aws_instance.ec2-1.id           # Monitor specific EC2
+    InstanceId = var.instance_ids[0]           # Monitor specific EC2
   }
 
   tags = {
@@ -35,7 +35,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2-1-cpu" {
 }
 
 # CloudWatch Alarm for EC2 Instance 2 CPU utilization
-resource "aws_cloudwatch_metric_alarm" "ec2-2-cpu" {
+resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
   alarm_name          = "ec2-2-cpu-utilization-internship-maksym"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 2
@@ -46,10 +46,10 @@ resource "aws_cloudwatch_metric_alarm" "ec2-2-cpu" {
   threshold           = 3
   treat_missing_data  = "notBreaching"
   insufficient_data_actions = []
-  alarm_actions       = [aws_sns_topic.sns-topic.arn]
+  alarm_actions       = [aws_sns_topic.sns_topic.arn]
 
   dimensions = {
-    InstanceId = aws_instance.ec2-2.id
+    InstanceId = var.instance_ids[1]
   }
 
   tags = {
