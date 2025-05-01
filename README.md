@@ -101,7 +101,7 @@ terraform plan     # Shows what will be created
 terraform apply    # Deploys resources
 ```
 
-> **Create a backend before deploying! Go to the `bootstrap/` folder and do the same steps.**
+> **Warning: Create a backend before deploying! Go to the `bootstrap/` folder and do the same steps.**
 
 ---
 
