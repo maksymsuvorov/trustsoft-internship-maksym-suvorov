@@ -132,7 +132,7 @@ resource "aws_route_table" "private-subnet-rt-1" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat-gw-1.id
+    nat_gateway_id = aws_nat_gateway.nat-gw-1.id
   }
 
   tags = {
@@ -146,7 +146,7 @@ resource "aws_route_table" "private-subnet-rt-2" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat-gw-2.id
+    nat_gateway_id = aws_nat_gateway.nat-gw-2.id
   }
 
   tags = {
