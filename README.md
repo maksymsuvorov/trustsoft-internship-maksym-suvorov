@@ -104,7 +104,7 @@ terraform apply    # Deploys resources
 
 ---
 
-# Clean Up
+# Cleaning Up
 ```
 terraform destroy
 ```
