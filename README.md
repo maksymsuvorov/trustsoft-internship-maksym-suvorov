@@ -1,17 +1,99 @@
 # Terraform AWS Infostructure - Trustsoft Internship Project
 
-# Overview
-This project deploys a basic AWS infrastructure using Terraform:
+# Project Overview
 
-- VPC with 2 public and 2 private subnets
-- 2 EC2 instances in private subnets with ALB
-- IAM role with SSM access
-- NAT Gateway and Internet Gateway
-- Encrypted S3 remote backend with KMS
-- CloudWatch monitoring and alarms via email
+This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
+
+---
 
 # Architecture diagram
 ![Architecture diagram](./diagram.png)
+
+---
+
+## Networking
+
+- **VPC** with public and private subnets across two AZs for high availability  
+- **Internet Gateway** for public-facing traffic  
+- **NAT Gateways** (one per AZ) to allow private EC2 instances outbound Internet access without public IPs  
+- Route tables and associations tying all pieces together
+
+---
+
+## Security
+
+- **Security Groups**  
+  - ALB SG: allows HTTP from the Internet  
+  - EC2 SG: allows HTTP only from the ALB  
+- **IAM Role** + **Instance Profile**  
+  - Grants EC2 instances permission for **SSM Session Manager** (no SSH keys needed)  
+  - Optionally attach CloudWatch Agent policy
+
+---
+
+## Compute & Load Balancing
+
+- Two **EC2** instances (Amazon Linux) in private subnets  
+  - Bootstrapped via `user_data` to install Apache, expose a health endpoint, and register with SSM  
+- An **Application Load Balancer** in public subnets  
+  - Distributes HTTP traffic to EC2 instances  
+  - Performs health checks on a `/health` endpoint
+
+---
+
+## Monitoring
+
+- **CloudWatch Agent** on EC2 for logs and custom metrics  
+- **CloudWatch Alarms** monitoring CPU utilization  
+- **SNS Topic** for email alerts to a configurable list of recipients
+
+---
+
+## Remote backend
+- Remote state stored in **S3** (with versioning and SSE-KMS encryption)  
+- State locking via **DynamoDB**
+
+---
+
+## IaC structure
+```
+├── backend.tf                # Remote backend configuration (S3 + DynamoDB)
+├── versions.tf               # Terraform & provider version constraints
+├── variables.tf              # Root-module input variable definitions
+├── outputs.tf                # Root-module outputs that expose module results
+├── main.tf                   # Root-module wiring: calls all child modules
+├── bootstrap/                # Create backend infra (S3 bucket, DynamoDB, KMS)
+│   └── backend-setup.tf      # Resources for S3, DynamoDB, KMS key
+├── modules/                  # Reusable building blocks, each with its own variables/outputs
+│   ├── networking/           # Module for VPC, subnets, IGW, NAT, route tables
+│   │   ├── main.tf           # VPC, subnets, IGW, NAT GW, route tables
+│   │   ├── variables.tf      # Inputs: vpc_cidr, subnet CIDRs, AZs
+│   │   └── outputs.tf        # Outputs: vpc_id, subnet IDs, igw_id, nat_gw_ids, rt_ids
+│   ├── security/             # Module for security groups (ALB & EC2)
+│   │   ├── main.tf
+│   │   ├── variables.tf      # Inputs: vpc_id, alb_cidr_blocks
+│   │   └── outputs.tf        # Outputs: alb_sg_id, ec2_sg_id
+│   ├── iam/                  # Module for IAM roles & instance profiles
+│   │   ├── main.tf
+│   │   ├── variables.tf      
+│   │   └── outputs.tf        # Outputs: role_arn, instance_profile
+│   ├── compute/              # Module for EC2 instances
+│   │   ├── main.tf
+│   │   ├── variables.tf      # Inputs: ami_id, instance_type, subnet_ids, SGs, iam_instance_profile, user_data_file
+│   │   └── outputs.tf        # Outputs: instance_ids, private_ips
+│   ├── alb/                  # Module for Application Load Balancer & target group
+│   │   ├── main.tf
+│   │   ├── variables.tf      # Inputs: vpc_id, public_subnet_ids, security_group_id, target_ids
+│   │   └── outputs.tf        # Outputs: alb_dns_name, target_group_arn
+│   └── monitoring/           # Module for CloudWatch alarms & SNS notifications
+│       ├── main.tf
+│       ├── variables.tf      # Inputs: instance_ids, email_addresses
+│       └── outputs.tf        # Outputs: sns_topic_arn
+├── scripts/                  # Helper scripts and user_data files
+└────── userdata.sh           # Bootstraps EC2 with Web Server, SSM
+```
+
+---
 
 # Deploying
 ```
@@ -20,32 +102,28 @@ terraform plan     # Shows what will be created
 terraform apply    # Deploys resources
 ```
 
+---
 
 # Clean Up
 ```
 terraform destroy
 ```
 
-# File and folder structure
-- `provider.tf` — contains information about provider
-- `variables.tf` — definition of variables used in this project
-- `bootstrap/backend-setup.tf` — remote backend implementation using S3 bucket and DynamoDB
-- `scripts/userdata.sh` — user-data script used by EC2 instances
-- `vpc.tf` — VPC, subnets, routing, NAT
-- `backend.tf` — definition of backend used in this project
-- `security_groups.tf` — security groups of ALB and EC2 instances
-- `iam.tf` — IAM roles and instance profile
-- `alb.tf` — load balancer, target groups
-- `ec2.tf` — EC2 instances
-- `cpu_metric_alarm.tf` — CloudWatch alarms
+---
+
+# Documentation generated using [terraform-docs](https://terraform-docs.io/).
+
+> **Each module has its own documentation within its folder generated via [terraform-docs](https://terraform-docs.io/).**
 
 ## Requirements
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.81.0 |
+| Name                                                                       | Version  |
+|----------------------------------------------------------------------------|----------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform)  | >= 1.5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws)                    | ~> 5.81  |
 
 ## Providers
+
 
 | Name | Version |
 |------|---------|
@@ -53,63 +131,51 @@ terraform destroy
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_alb"></a> [alb](#module\_alb) | ./modules/alb | n/a |
+| <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
+| <a name="module_iam"></a> [iam](#module\_iam) | ./modules/iam | n/a |
+| <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | ./modules/monitoring | n/a |
+| <a name="module_networking"></a> [networking](#module\_networking) | ./modules/networking | n/a |
+| <a name="module_security"></a> [security](#module\_security) | ./modules/security | n/a |
 
 ## Resources
 
-| Name | Type |
-|------|------|
-| [aws_cloudwatch_metric_alarm.ec2-1-cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_cloudwatch_metric_alarm.ec2-2-cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_eip.nat-eip-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_eip.nat-eip-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_iam_instance_profile.ssm-instance-profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
-| [aws_iam_role.ssm-ec2-role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy_attachment.ssm-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_instance.ec2-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
-| [aws_instance.ec2-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
-| [aws_internet_gateway.internet-gw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
-| [aws_lb.lb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
-| [aws_lb_listener.lb-listener](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
-| [aws_lb_target_group.lb-tg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
-| [aws_lb_target_group_attachment.ec2-1-attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
-| [aws_lb_target_group_attachment.ec2-2-attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group_attachment) | resource |
-| [aws_nat_gateway.nat-gw-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_nat_gateway.nat-gw-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_route_table.private-subnet-rt-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.private-subnet-rt-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.public-subnet-rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.private-subnet-assoc-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.private-subnet-assoc-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public-subnet-assoc-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public-subnet-assoc-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_security_group.alb-sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_security_group.ec2-sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_sns_topic.sns-topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
-| [aws_sns_topic_subscription.topic-email-sub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
-| [aws_subnet.subnet-private-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.subnet-private-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.subnet-public-1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.subnet-public-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-
-# Terraform-docs documentation
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_availability-zone-1"></a> [availability-zone-1](#input\_availability-zone-1) | Primary availability zone (AZ 1) | `string` | `"eu-west-1a"` | no |
-| <a name="input_availability-zone-2"></a> [availability-zone-2](#input\_availability-zone-2) | Secondary availability zone (AZ 2) | `string` | `"eu-west-1b"` | no |
-| <a name="input_email_address"></a> [email\_address](#input\_email\_address) | List of emails for CloudWatch alarm notifications | `list(string)` | <pre>[<br/>  "maksym.suvorov@trustsoft.eu",<br/>  "vladislav.yurikov@trustsoft.eu"<br/>]</pre> | no |
-| <a name="input_region"></a> [region](#input\_region) | Default AWS region to deploy the infrastructure | `string` | `"eu-west-1"` | no |
+| <a name="input_alb_allowed_cidrs"></a> [alb\_allowed\_cidrs](#input\_alb\_allowed\_cidrs) | List of CIDR blocks permitted to connect to the ALB | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
+| <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | AMI ID to use for EC2 instances | `string` | `"ami-0ce8c2b29fcc8a346"` | no |
+| <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | List of Availability Zones to distribute subnets and NAT Gateways | `list(string)` | <pre>[<br/>  "eu-west-1a",<br/>  "eu-west-1b"<br/>]</pre> | no |
+| <a name="input_backend_bucket"></a> [backend\_bucket](#input\_backend\_bucket) | Name of the S3 bucket used to store Terraform state | `string` | `"s3-remote-backend-internship-maksym"` | no |
+| <a name="input_backend_dynamodb_table"></a> [backend\_dynamodb\_table](#input\_backend\_dynamodb\_table) | Name of the DynamoDB table used for Terraform state locking | `string` | `"dynamodb-state-lock-table-internship-maksym"` | no |
+| <a name="input_email_addresses"></a> [email\_addresses](#input\_email\_addresses) | List of email addresses to receive CloudWatch alarm notifications | `list(string)` | <pre>[<br/>  "maksym.suvorov@trustsoft.eu"<br/>]</pre> | no |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type | `string` | `"t2.micro"` | no |
+| <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | List of CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.11.0/24",<br/>  "10.0.12.0/24"<br/>]</pre> | no |
+| <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | List of CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS Region where all resources will be created | `string` | `"eu-west-1"` | no |
+| <a name="input_user_data_file"></a> [user\_data\_file](#input\_user\_data\_file) | Path to the bootstrap script for EC2 | `string` | `"scripts/userdata.sh"` | no |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for the VPC | `string` | `"10.0.0.0/16"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the Application Load Balancer |
-| <a name="output_ec2_1_private_ip"></a> [ec2\_1\_private\_ip](#output\_ec2\_1\_private\_ip) | Private IP address of EC2 instance 1 |
-| <a name="output_ec2_2_private_ip"></a> [ec2\_2\_private\_ip](#output\_ec2\_2\_private\_ip) | Private IP address of EC2 instance 2 |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |
-
+| <a name="output_alb_sg_id"></a> [alb\_sg\_id](#output\_alb\_sg\_id) | Security Group ID for the Application Load Balancer |
+| <a name="output_ec2_sg_id"></a> [ec2\_sg\_id](#output\_ec2\_sg\_id) | Security Group ID for EC2 instances |
+| <a name="output_instance_ids"></a> [instance\_ids](#output\_instance\_ids) | List of EC2 instance IDs |
+| <a name="output_instance_profile"></a> [instance\_profile](#output\_instance\_profile) | Name of the IAM Instance Profile attached to EC2 |
+| <a name="output_internet_gateway_id"></a> [internet\_gateway\_id](#output\_internet\_gateway\_id) | ID of the Internet Gateway |
+| <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | List of NAT Gateway IDs |
+| <a name="output_private_ips"></a> [private\_ips](#output\_private\_ips) | Private IP addresses of the EC2 instances |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | List of private subnet IDs |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | List of public subnet IDs |
+| <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the IAM role for EC2 instances |
+| <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | ARN of the SNS topic for CloudWatch alerts |
+| <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the ALB target group |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the created VPC |

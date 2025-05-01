@@ -1,11 +1,4 @@
 terraform {
-  # Specify required providers and versions
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.81.0"
-    }
-  }
 
   # Configure remote backend to store Terraform state securely
   backend "s3" {
@@ -21,10 +14,6 @@ terraform {
     # DynamoDB table used to enable state locking to prevent concurrent changes
     dynamodb_table = "dynamodb-state-lock-table-internship-maksym"
   }
-}
-
-provider "aws" {
-  region = var.region
 }
 
 module "networking" {
