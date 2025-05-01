@@ -13,10 +13,10 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 ## Networking
 
-- **VPC** with public and private subnets across two AZs for high availability  
+- **VPC** with public and private subnets across two AZs 
 - **Internet Gateway** for public-facing traffic  
 - **NAT Gateways** (one per AZ) to allow private EC2 instances outbound Internet access without public IPs  
-- Route tables and associations tying all pieces together
+- Route tables and associations connecting all pieces together
 
 ---
 
@@ -26,18 +26,17 @@ This project uses **Terraform** to provision an AWS environment, broken into log
   - ALB SG: allows HTTP from the Internet  
   - EC2 SG: allows HTTP only from the ALB  
 - **IAM Role** + **Instance Profile**  
-  - Grants EC2 instances permission for **SSM Session Manager** (no SSH keys needed)  
-  - Optionally attach CloudWatch Agent policy
+  - Grants EC2 instances permission for **SSM Session Manager** (no SSH keys needed)
 
 ---
 
 ## Compute & Load Balancing
 
-- Two **EC2** instances (Amazon Linux) in private subnets  
-  - Bootstrapped via `user_data` to install Apache, expose a health endpoint, and register with SSM  
+- Two **EC2** instances in different private subnets  
+  - Bootstrapped via `user_data` to install Web Server and register with SSM  
 - An **Application Load Balancer** in public subnets  
   - Distributes HTTP traffic to EC2 instances  
-  - Performs health checks on a `/health` endpoint
+  - Performs health checks on a `/` endpoint
 
 ---
 
@@ -55,7 +54,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 ---
 
-## IaC structure
+## IaC
 ```
 ├── backend.tf                # Remote backend configuration (S3 + DynamoDB)
 ├── versions.tf               # Terraform & provider version constraints
@@ -101,6 +100,8 @@ terraform init     # Initializes backend
 terraform plan     # Shows what will be created
 terraform apply    # Deploys resources
 ```
+
+> **Create a backend before deploying! Go to the `bootstrap/` folder and do the same steps.**
 
 ---
 
