@@ -1,6 +1,8 @@
 # .github/workflows/terraform.yml
 name: Terraform CI/CD
 
+# trigger workflow manually
+# before trigger workflow, make sure that Access Keys stored in GitHub Secrets are up-to-date
 on:
   workflow_dispatch:
 
