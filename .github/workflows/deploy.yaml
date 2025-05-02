@@ -1,9 +1,9 @@
 # .github/workflows/terraform.yml
 name: Terraform CI/CD
 
+# trigger workflow manually
+# before trigger workflow, make sure that Access Keys stored in GitHub Secrets are up-to-date
 on:
-  push:
-  pull_request:
   workflow_dispatch:
 
  # define AWS_* env vars once, for every step in this job
@@ -13,7 +13,6 @@ env:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    environment: manual
     
     steps:
       - name: Checkout
