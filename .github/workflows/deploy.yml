@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug AWS_REGION
+        run: |
+          echo "AWS_REGION is: '${{ secrets.MY_AWS_REGION }}'"
       - name: Checkout
         uses: actions/checkout@v3
 
