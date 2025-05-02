@@ -7,7 +7,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 ---
 
 # Architecture diagram
-![Architecture diagram](./diagram.png)
+![Architecture diagram](./docs/diagram.png)
 
 ---
 
