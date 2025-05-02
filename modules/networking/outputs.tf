@@ -1,6 +1,6 @@
 output "vpc_id" {
   description = "ID of the VPC"
-  value = aws_vpc.vpc.id
+  value       = aws_vpc.vpc.id
 }
 
 output "public_subnet_ids" {
@@ -21,7 +21,7 @@ output "private_subnet_ids" {
 
 output "internet_gw_id" {
   description = "ID of the Internet Gateway"
-  value = aws_internet_gateway.internet_gw.id
+  value       = aws_internet_gateway.internet_gw.id
 }
 
 output "nat_gateway_ids" {

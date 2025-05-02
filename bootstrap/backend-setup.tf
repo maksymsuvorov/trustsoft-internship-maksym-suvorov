@@ -7,7 +7,7 @@ resource "aws_dynamodb_table" "terraform-lock" {
 
   attribute {
     name = "LockID"
-    type = "S"               # String type key
+    type = "S" # String type key
   }
 
   tags = {
@@ -26,8 +26,8 @@ resource "aws_s3_bucket" "s3-bucket" {
 
 # KMS Key for encrypting the Terraform state file in S3
 resource "aws_kms_key" "state-key" {
-  deletion_window_in_days = 10         # Days before deletion if destroyed
-  enable_key_rotation     = true       # Enables annual key rotation
+  deletion_window_in_days = 10   # Days before deletion if destroyed
+  enable_key_rotation     = true # Enables annual key rotation
 
   tags = {
     Name = "state-kms-key-internship-maksym"
@@ -40,8 +40,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state-encryption"
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"                      # Use KMS encryption
-      kms_master_key_id = aws_kms_key.state-key.arn      # Use custom keWhy Amazon Simple Notification Service (SNS)?y
+      sse_algorithm     = "aws:kms"                 # Use KMS encryption
+      kms_master_key_id = aws_kms_key.state-key.arn # Use custom keWhy Amazon Simple Notification Service (SNS)?y
     }
   }
 }
@@ -51,7 +51,7 @@ resource "aws_s3_bucket_versioning" "bucket_versioning" {
   bucket = aws_s3_bucket.s3-bucket.id
 
   versioning_configuration {
-    status = "Enabled"  # Enables object versioning
+    status = "Enabled" # Enables object versioning
   }
 }
 
