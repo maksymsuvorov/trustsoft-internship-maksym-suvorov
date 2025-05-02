@@ -1,6 +1,6 @@
 # DynamoDB Table for Terraform state locking
 resource "aws_dynamodb_table" "terraform-lock" {
-  name           = "dynamodb-state-lock-table-internship-maksym"
+  name           = var.dynamodb_name
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "LockID"
@@ -17,7 +17,7 @@ resource "aws_dynamodb_table" "terraform-lock" {
 
 # S3 Bucket for storing Terraform state
 resource "aws_s3_bucket" "s3-bucket" {
-  bucket = "s3-remote-backend-internship-maksym"
+  bucket = var.bucket_name
 
   tags = {
     Name = "S3 Remote Terraform State Store"
@@ -41,7 +41,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state-encryption"
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"                      # Use KMS encryption
-      kms_master_key_id = aws_kms_key.state-key.arn      # Use custom key
+      kms_master_key_id = aws_kms_key.state-key.arn      # Use custom keWhy Amazon Simple Notification Service (SNS)?y
     }
   }
 }

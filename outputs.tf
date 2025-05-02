@@ -64,6 +64,11 @@ output "instance_ids" {
   value       = module.compute.instance_ids
 }
 
+output "instance_ips" {
+  description = "List of EC2 instance IPs"
+  value       = module.compute.private_ips
+}
+
 output "private_ips" {
   description = "Private IP addresses of the EC2 instances"
   value       = module.compute.private_ips

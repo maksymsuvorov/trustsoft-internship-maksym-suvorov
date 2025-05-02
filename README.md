@@ -16,7 +16,45 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 - **VPC** with public and private subnets across two AZs 
 - **Internet Gateway** for public-facing traffic  
 - **NAT Gateways** (one per AZ) to allow private EC2 instances outbound Internet access without public IPs  
-- Route tables and associations connecting all pieces together
+- Route tables and associations connecting all pieces
+
+### 1. Public Route Table (`public_subnet_rt`)
+
+- **Associated with:**  
+  - `public_subnet_1` (AZ‑1)  
+  - `public_subnet_2` (AZ‑2)  
+
+- **Routes:**  
+  
+| Destination   | Target             | Purpose                                          |
+  |---------------|--------------------|--------------------------------------------------|
+  | `0.0.0.0/0`   | Internet Gateway   | Allows inbound Internet traffic to ALB, NAT GWs  |
+  | `local`       | `–` (VPC router)   | Enables intra‑VPC communication                  |
+
+### 2. Private Route Table AZ‑1 (`private_subnet_rt_1`)
+
+- **Associated with:**  
+  - `private_subnet_1` (AZ‑1)  
+
+- **Routes:**  
+
+  | Destination   | Target                         | Purpose                                        |
+  |---------------|--------------------------------|------------------------------------------------|
+  | `0.0.0.0/0`   | NAT Gateway 1 (`nat_gw_1`)     | Allows EC2 in private subnet to reach Internet |
+  | `local`       | `–` (VPC router)               | Enables inside‑VPC communication               |
+
+### 3. Private Route Table AZ‑2 (`private_subnet_rt_2`)
+
+- **Associated with:**  
+  - `private_subnet_2` (AZ‑2)  
+
+- **Routes:**
+
+  | Destination   | Target                         | Purpose                                        |
+  |---------------|--------------------------------|------------------------------------------------|
+  | `0.0.0.0/0`   | NAT Gateway 2 (`nat_gw_2`)     | Allows EC2 in private subnet to reach Internet |
+  | `local`       | `–` (VPC router)               | Enables inside‑VPC communication               |
+
 
 ---
 
@@ -37,7 +75,8 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 - An **Application Load Balancer** in public subnets  
   - Distributes HTTP traffic to EC2 instances  
   - Performs health checks on a `/` endpoint
-
+- **Target Group**
+  - Defines which backend targets receive traffic
 ---
 
 ## Monitoring
@@ -60,12 +99,12 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 ├── versions.tf               # Terraform & provider version constraints
 ├── variables.tf              # Root-module input variable definitions
 ├── outputs.tf                # Root-module outputs that expose module results
-├── main.tf                   # Root-module wiring: calls all child modules
-├── bootstrap/                # Create backend infra (S3 bucket, DynamoDB, KMS)
+├── main.tf                   # Calls all child modules
+├── bootstrap/                # Create backend infrastructure (S3 bucket, DynamoDB, KMS)
 │   └── backend-setup.tf      # Resources for S3, DynamoDB, KMS key
-├── modules/                  # Reusable building blocks, each with its own variables/outputs
+├── modules/                  # Reusable modules, each with its own variables/outputs
 │   ├── networking/           # Module for VPC, subnets, IGW, NAT, route tables
-│   │   ├── main.tf           # VPC, subnets, IGW, NAT GW, route tables
+│   │   ├── main.tf           
 │   │   ├── variables.tf      # Inputs: vpc_cidr, subnet CIDRs, AZs
 │   │   └── outputs.tf        # Outputs: vpc_id, subnet IDs, igw_id, nat_gw_ids, rt_ids
 │   ├── security/             # Module for security groups (ALB & EC2)
@@ -89,7 +128,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 │       ├── variables.tf      # Inputs: instance_ids, email_addresses
 │       └── outputs.tf        # Outputs: sns_topic_arn
 ├── scripts/                  # Helper scripts and user_data files
-└────── userdata.sh           # Bootstraps EC2 with Web Server, SSM
+└────── userdata.sh           # Bootstraps EC2 with Web Server and   SSM
 ```
 
 ---
