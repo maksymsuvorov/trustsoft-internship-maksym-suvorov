@@ -16,10 +16,10 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-region:            ${{ secrets.MY_AWS_REGION }}
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_session_token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ secrets.MY_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -41,7 +41,7 @@ jobs:
              -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
              -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
              -var="aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" \
-             -var="aws_region=${{ secrets.AWS_REGION }}" \
+             -var="aws_region=${{ secrets.MY_AWS_REGION }}" \
              -out=plan.tfplan
 
       - name: Terraform Apply
