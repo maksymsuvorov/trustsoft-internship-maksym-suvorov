@@ -26,10 +26,10 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 - **Routes:**  
   
-| Destination   | Target             | Purpose                                          |
-  |---------------|--------------------|--------------------------------------------------|
-  | `0.0.0.0/0`   | Internet Gateway   | Allows inbound Internet traffic to ALB, NAT GWs  |
-  | `local`       | `–` (VPC router)   | Enables intra‑VPC communication                  |
+| Destination   | Target             | Purpose                                         |
+  |---------------|--------------------|-------------------------------------------------|
+  | `0.0.0.0/0`   | Internet Gateway   | Allows inbound Internet traffic to ALB, NAT GWs |
+  | `local`       | `–` (VPC router)   | Enables inside‑VPC communication                |
 
 ### 2. Private Route Table AZ‑1 (`private_subnet_rt_1`)
 
