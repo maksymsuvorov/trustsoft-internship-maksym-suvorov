@@ -10,9 +10,9 @@ terraform {
 
     # AWS region where the S3 bucket and DynamoDB table are located
     region = "eu-west-1"
-
-    # DynamoDB table used to enable state locking to prevent concurrent changes
-    dynamodb_table = "dynamodb-state-lock-table-internship-maksym"
+    
+    encrypt = true
+    use_lockfile = true
   }
 }
 
