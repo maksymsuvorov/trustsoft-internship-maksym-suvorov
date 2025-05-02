@@ -1,4 +1,4 @@
-# Terraform AWS Infostructure - Trustsoft Internship Project
+# Terraform AWS Infrastructure - Trustsoft Internship Project
 
 # Project Overview
 
