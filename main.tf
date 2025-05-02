@@ -10,7 +10,8 @@ terraform {
 
     # AWS region where the S3 bucket and DynamoDB table are located
     region = "eu-west-1"
-
+    
+    # Since Dynamo
     encrypt      = true
     use_lockfile = true
   }

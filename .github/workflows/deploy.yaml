@@ -5,6 +5,9 @@ on:
   push:
   pull_request:
 
+on:
+  workflow_dispatch:
+
  # define AWS_* env vars once, for every step in this job
 env:
   AWS_REGION: eu-west-1

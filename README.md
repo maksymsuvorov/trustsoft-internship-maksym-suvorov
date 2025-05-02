@@ -89,7 +89,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 ## Remote backend
 - Remote state stored in **S3** (with versioning and SSE-KMS encryption)  
-- State locking via **DynamoDB**
+- State locking **without DynamoDB** using S3 native locking
 
 ---
 

@@ -8,7 +8,6 @@ systemctl start amazon-ssm-agent
 yum install -y httpd
 
 echo "<h1>Hello from EC2 instance $(hostname)</h1>" > /var/www/html/index.html
-echo "OK" > /var/www/html/health
 
 systemctl enable httpd
 systemctl start httpd
