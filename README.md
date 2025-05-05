@@ -152,6 +152,10 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 │   │   ├── main.tf
 │   │   ├── variables.tf      
 │   │   └── outputs.tf        # Outputs: config_rule_name, config_rule_id, config_rule_arn, config_rule_description
+│   ├── cloudwatch-agent/     # Module for CloudWatch modulestup
+│   │   ├── main.tf
+│   │   ├── variables.tf      
+│   │   └── outputs.tf        # Outputs: cloudwatch_ssm_parameter_name, cloudwatch_ssm_document_name, cloudwatch_ssm_association_id
 │   └── monitoring/           # Module for CloudWatch alarms & SNS notifications
 │       ├── main.tf
 │       ├── variables.tf      # Inputs: instance_ids, email_addresses
