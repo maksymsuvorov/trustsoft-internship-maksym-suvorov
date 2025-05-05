@@ -1,6 +1,6 @@
 resource "aws_ssm_parameter" "cw_agent_config" {
-  name  = "/cloudwatch-agent/config"
-  type  = "String"
+  name = "/cloudwatch-agent/config"
+  type = "String"
 
   value = jsonencode({
     agent = {

@@ -10,5 +10,5 @@ output "ec2_role_arn" {
 
 output "flow_logs_role_arn" {
   description = "ARN of the IAM role attached to Flow Logs"
-  value = aws_iam_role.vpc_flow_logs_role.arn
+  value       = aws_iam_role.vpc_flow_logs_role.arn
 }
