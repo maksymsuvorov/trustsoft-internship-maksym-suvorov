@@ -53,6 +53,10 @@ module "alb" {
   vpc_id              = module.networking.vpc_id
 }
 
+module "cloudwatch-agent" {
+  source = "./modules/cloudwatch-agent"
+}
+
 module "monitoring" {
   source          = "./modules/monitoring"
   email_addresses = var.email_addresses
