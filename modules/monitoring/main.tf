@@ -205,7 +205,10 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_disk" {
   alarm_actions             = [aws_sns_topic.sns_topic.arn]
 
   dimensions = {
-    InstanceId = var.instance_ids[0]
+    InstanceId = var.instance_ids[0],
+    path       = "/",
+    device     = "xvda1",
+    fstype     = "xfs"
   }
 
   tags = {
@@ -229,6 +232,9 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
 
   dimensions = {
     InstanceId = var.instance_ids[1]
+    path       = "/",
+    device     = "xvda1",
+    fstype     = "xfs"
   }
 
   tags = {
