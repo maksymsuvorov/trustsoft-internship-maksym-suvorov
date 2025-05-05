@@ -1,53 +1,3 @@
-locals {
-  # Define the metrics you want alarms for
-  metrics = {
-    cpu = {
-      namespace       = "AWS/EC2"
-      metric_name     = "CPUUtilization"
-      threshold       = 90
-      period          = 60
-      statistic       = "Average"
-      treat_missing   = "notBreaching"
-      dimension_key   = "InstanceId"
-    }
-    memory = {
-      namespace       = "Maksym"
-      metric_name     = "mem_used_percent"
-      threshold       = 90
-      period          = 60
-      statistic       = "Average"
-      treat_missing   = "notBreaching"
-      dimension_key   = "InstanceId"
-    }
-    disk = {
-      namespace       = "Maksym"
-      metric_name     = "disk_used_percent"
-      threshold       = 90
-      period          = 60
-      statistic       = "Average"
-      treat_missing   = "notBreaching"
-      dimension_key   = "InstanceId"
-    }
-  }
-
-  # Create a flat list of { instance_id, metric, config } objects
-  instance_metric_pairs = flatten([
-    for inst in var.instance_ids : [
-      for met, cfg in local.metrics : {
-        instance_id = inst
-        metric      = met
-        config      = cfg
-      }
-    ]
-  ])
-
-  # Convert that list into a map suitable for for_each
-  alarm_map = {
-    for pair in local.instance_metric_pairs :
-    "${pair.instance_id}-${pair.metric}" => pair
-  }
-}
-
 resource "aws_ssm_parameter" "cw_agent_config" {
   name  = "/cloudwatch-agent/config"
   type  = "String"
@@ -58,7 +8,7 @@ resource "aws_ssm_parameter" "cw_agent_config" {
       run_as_user                 = "root"
     }
     metrics = {
-      namespace = "Maksym"
+      namespace = "CWAgent"
       append_dimensions = {
         InstanceId = "$${aws:InstanceId}"
       }
@@ -133,6 +83,8 @@ resource "aws_ssm_association" "cw_agent_association" {
 
 
 
+
+
 # Create an SNS topic for CPU utilization alerts
 resource "aws_sns_topic" "sns_topic" {
   name = "cpu-utilization-alert-internship-maksym"
@@ -146,27 +98,140 @@ resource "aws_sns_topic_subscription" "topic_email_sub" {
   endpoint  = var.email_addresses[count.index] # Each email will receive alerts
 }
 
-# Single resource block to create all alarms
-resource "aws_cloudwatch_metric_alarm" "utilization" {
-  for_each = local.alarm_map
-
-  alarm_name          = "ec2-${each.key}-internship-maksym"
-  namespace           = each.value.config.namespace
-  metric_name         = each.value.config.metric_name
-  statistic           = each.value.config.statistic
-  period              = each.value.config.period
-  evaluation_periods  = 2
-  threshold           = each.value.config.threshold
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = each.value.config.treat_missing
-  alarm_actions       = [aws_sns_topic.sns_topic.arn]
+# CloudWatch Alarm for EC2 Instance 1 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_1_cpu" {
+  alarm_name                = "ec2-1-cpu-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2 # Breach must happen twice
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = 60 # Check every 60 seconds
+  statistic                 = "Average"
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []                            # Don’t alert on missing data
+  alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
 
   dimensions = {
-    (each.value.config.dimension_key) = each.value.instance_id
+    InstanceId = var.instance_ids[0] # Monitor specific EC2
   }
 
   tags = {
-    Name = "ec2-${each.key}-internship-maksym"
+    Name = "ec2-1-cpu-metric-alarm-internship-maksym"
   }
 }
 
+# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
+  alarm_name                = "ec2-2-cpu-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 90
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[1]
+  }
+
+  tags = {
+    Name = "ec2-2-cpu-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_1_mem" {
+  alarm_name                = "ec2-1-mem-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "mem_used_percent"
+  namespace                 = "CWAgent"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 90
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[0]
+  }
+
+  tags = {
+    Name = "ec2-1-mem-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_2_mem" {
+  alarm_name                = "ec2-2-mem-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "mem_used_percent"
+  namespace                 = "CWAgent"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 90
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[1]
+  }
+
+  tags = {
+    Name = "ec2-2-mem-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_1_disk" {
+  alarm_name                = "ec2-1-disk-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "disk_used_percent"
+  namespace                 = "CWAgent"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 90
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[0]
+  }
+
+  tags = {
+    Name = "ec2-1-disk-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
+  alarm_name                = "ec2-2-disk-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "disk_used_percent"
+  namespace                 = "CWAgent"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 90
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[1]
+  }
+
+  tags = {
+    Name = "ec2-2-disk-metric-alarm-internship-maksym"
+  }
+}

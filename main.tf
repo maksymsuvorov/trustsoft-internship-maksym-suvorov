@@ -64,3 +64,7 @@ module "logging" {
   vpc_id       = module.networking.vpc_id
   iam_role_arn = module.iam.flow_logs_role_arn
 }
+
+module "config" {
+  source = "./modules/config"
+}
