@@ -13,6 +13,7 @@ resource "aws_instance" "ec2_1" {
 
   tags = {
     Name = "ec2-1-internship-maksym"
+    Monitoring = "enabled"
   }
 }
 
@@ -31,6 +32,7 @@ resource "aws_instance" "ec2_2" {
 
   tags = {
     Name = "ec2-2-internship-maksym"
+    Monitoring = "enabled"
   }
 }
 

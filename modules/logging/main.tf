@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "vpc_flow_log_group" {
-  name              = "vpc-flow-log-group-internship-maks"
+  name              = "vpc-flow-log-group-internship-maksym"
   retention_in_days = 3
 }
 
