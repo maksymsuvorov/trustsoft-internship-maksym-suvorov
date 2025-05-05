@@ -50,9 +50,14 @@ output "instance_profile" {
   value       = module.iam.instance_profile
 }
 
-output "role_arn" {
+output "ec2_role_arn" {
   description = "ARN of the IAM role for EC2 instances"
-  value       = module.iam.role_arn
+  value       = module.iam.ec2_role_arn
+}
+
+output "flow_logs_role_arn" {
+  description = "ARN of the IAM role for flow logs"
+  value       = module.iam.flow_logs_role_arn
 }
 
 ###############################################################################

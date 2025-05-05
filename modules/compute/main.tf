@@ -12,7 +12,8 @@ resource "aws_instance" "ec2_1" {
   user_data = file(var.user_data_file)
 
   tags = {
-    Name = "ec2-1-internship-maksym"
+    Name       = "ec2-1-internship-maksym"
+    Monitoring = "enabled"
   }
 }
 
@@ -30,7 +31,8 @@ resource "aws_instance" "ec2_2" {
   user_data = file(var.user_data_file)
 
   tags = {
-    Name = "ec2-2-internship-maksym"
+    Name       = "ec2-2-internship-maksym"
+    Monitoring = "enabled"
   }
 }
 
