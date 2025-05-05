@@ -58,3 +58,9 @@ module "monitoring" {
   email_addresses = var.email_addresses
   instance_ids    = module.compute.instance_ids
 }
+
+module "logging" {
+  source       = "./modules/logging"
+  vpc_id       = module.networking.vpc_id
+  iam_role_arn = module.iam.role_arn
+}
