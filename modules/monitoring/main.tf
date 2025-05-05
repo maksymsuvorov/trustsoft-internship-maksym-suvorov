@@ -1,6 +1,6 @@
 # Create an SNS topic for CPU utilization alerts
 resource "aws_sns_topic" "sns_topic" {
-  name = "cpu-utilization-alert-internship-maksym"
+  name = "utilization-alert-internship-maksym"
 }
 
 # Subscribe email addresses to the SNS topic
@@ -20,7 +20,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_cpu" {
   namespace                 = "AWS/EC2"
   period                    = 60 # Check every 60 seconds
   statistic                 = "Average"
-  threshold                 = 3 # Threshold to trigger alarm (very low for demo/testing)
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
   treat_missing_data        = "notBreaching"
   insufficient_data_actions = []                            # Don’t alert on missing data
   alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
@@ -34,6 +34,52 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_cpu" {
   }
 }
 
+# CloudWatch Alarm for EC2 Instance 1 Memory utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_1_mem" {
+  alarm_name                = "ec2-1-mem-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2 # Breach must happen twice
+  metric_name               = "mem_used_percent"
+  namespace                 = "AWS/EC2"
+  period                    = 60 # Check every 60 seconds
+  statistic                 = "Average"
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []                            # Don’t alert on missing data
+  alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
+
+  dimensions = {
+    InstanceId = var.instance_ids[0] # Monitor specific EC2
+  }
+
+  tags = {
+    Name = "ec2-1-mem-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 1 Disk utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_1_disk" {
+  alarm_name                = "ec2-1-disk-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2 # Breach must happen twice
+  metric_name               = "disk_used_percent"
+  namespace                 = "AWS/EC2"
+  period                    = 60 # Check every 60 seconds
+  statistic                 = "Average"
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []                            # Don’t alert on missing data
+  alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
+
+  dimensions = {
+    InstanceId = var.instance_ids[0] # Monitor specific EC2
+  }
+
+  tags = {
+    Name = "ec2-1-disk-metric-alarm-internship-maksym"
+  }
+}
+
 # CloudWatch Alarm for EC2 Instance 2 CPU utilization
 resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
   alarm_name                = "ec2-2-cpu-utilization-internship-maksym"
@@ -43,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
   namespace                 = "AWS/EC2"
   period                    = 60
   statistic                 = "Average"
-  threshold                 = 3
+  threshold                 = 90
   treat_missing_data        = "notBreaching"
   insufficient_data_actions = []
   alarm_actions             = [aws_sns_topic.sns_topic.arn]
@@ -57,3 +103,48 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
   }
 }
 
+# CloudWatch Alarm for EC2 Instance 2 Memory utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_2_mem" {
+  alarm_name                = "ec2-2-mem-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2 # Breach must happen twice
+  metric_name               = "mem_used_percent"
+  namespace                 = "AWS/EC2"
+  period                    = 60 # Check every 60 seconds
+  statistic                 = "Average"
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []                            # Don’t alert on missing data
+  alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
+
+  dimensions = {
+    InstanceId = var.instance_ids[0] # Monitor specific EC2
+  }
+
+  tags = {
+    Name = "ec2-2-mem-metric-alarm-internship-maksym"
+  }
+}
+
+# CloudWatch Alarm for EC2 Instance 1 Disk utilization
+resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
+  alarm_name                = "ec2-2-disk-utilization-internship-maksym"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2 # Breach must happen twice
+  metric_name               = "disk_used_percent"
+  namespace                 = "AWS/EC2"
+  period                    = 60 # Check every 60 seconds
+  statistic                 = "Average"
+  threshold                 = 90 # Threshold to trigger alarm (very low for demo/testing)
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []                            # Don’t alert on missing data
+  alarm_actions             = [aws_sns_topic.sns_topic.arn] # Send alert to SNS
+
+  dimensions = {
+    InstanceId = var.instance_ids[0] # Monitor specific EC2
+  }
+
+  tags = {
+    Name = "ec2-2-disk-metric-alarm-internship-maksym"
+  }
+}
