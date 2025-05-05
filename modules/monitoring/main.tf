@@ -241,3 +241,49 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
     Name = "ec2-2-disk-metric-alarm-internship-maksym"
   }
 }
+
+resource "aws_cloudwatch_metric_alarm" "ec2_1_status_check" {
+  alarm_name                = "ec2-1-status-check-failed-internship-maksym"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = 2
+  metric_name               = "StatusCheckFailed"
+  namespace                 = "AWS/EC2"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 0
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[0]
+  }
+
+  tags = {
+    Name = "ec2-1-status-check-alarm"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ec2_2_status_check" {
+  alarm_name                = "ec2-2-status-check-failed-internship-maksym"
+  comparison_operator       = "GreaterThanThreshold"
+  evaluation_periods        = 2
+  metric_name               = "StatusCheckFailed"
+  namespace                 = "AWS/EC2"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 0
+  treat_missing_data        = "notBreaching"
+  insufficient_data_actions = []
+  alarm_actions             = [aws_sns_topic.sns_topic.arn]
+
+  dimensions = {
+    InstanceId = var.instance_ids[1]
+  }
+
+  tags = {
+    Name = "ec2-2-status-check-alarm"
+  }
+}
+
+

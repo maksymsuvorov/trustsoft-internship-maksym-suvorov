@@ -10,6 +10,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 ![Architecture diagram](./docs/diagram.png)
 
 ---
+### 2.5.2025
 
 ## Networking
 
@@ -91,6 +92,26 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 - Remote state stored in **S3** (with versioning and SSE-KMS encryption)  
 - State locking **without DynamoDB** using S3 native locking
 
+### 5.5.2025
+
+## VPC Flow Logs into CloudWatch
+- Enabled VPC Flow Logs for the entire VPC.
+- CloudWatch Logs group with a retention period set to **3 days**.
+
+## EC2 CloudWatch Agent
+- Installed CloudWatch Agent on EC2 instances via SSM.
+- Monitored Metrics: `mem_used_percent`, `disk_used_percent`
+- Config stored in **SSM Parameter Store**
+- Installed via **SSM Document** + **Association**
+
+## EC2 Status Check Alarm
+- Ensures the instance is healthy on OS level.
+- **Configured** similarly to other alarms with SNS alerting.
+
+## AWS Config Rule – Required Tags
+-  Enforce consistent tagging, applied on the two EC2 instances
+- Tags enforced: `Name`
+
 ---
 
 ## IaC
@@ -123,6 +144,14 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 │   │   ├── main.tf
 │   │   ├── variables.tf      # Inputs: vpc_id, public_subnet_ids, security_group_id, target_ids
 │   │   └── outputs.tf        # Outputs: alb_dns_name, target_group_arn
+│   ├── logging/              # Module for logging setup
+│   │   ├── main.tf
+│   │   ├── variables.tf      # Inputs: vpc_id, iam_role_arn
+│   │   └── outputs.tf        
+│   ├── config/               # Module for infrastructure configuration
+│   │   ├── main.tf
+│   │   ├── variables.tf      
+│   │   └── outputs.tf        # Outputs: config_rule_name, config_rule_id, config_rule_arn, config_rule_description
 │   └── monitoring/           # Module for CloudWatch alarms & SNS notifications
 │       ├── main.tf
 │       ├── variables.tf      # Inputs: instance_ids, email_addresses
@@ -135,7 +164,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 # Deploying
 ```
-terraform init     # Initializes backend
+terraform init     # Initializes working directory
 terraform plan     # Shows what will be created
 terraform apply    # Deploys resources
 ```
@@ -157,17 +186,14 @@ terraform destroy
 
 ## Requirements
 
-| Name                                                                       | Version  |
-|----------------------------------------------------------------------------|----------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform)  | >= 1.5.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws)                    | ~> 5.81  |
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.81 |
 
 ## Providers
 
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.81.0 |
+No providers.
 
 ## Modules
 
@@ -175,7 +201,9 @@ terraform destroy
 |------|--------|---------|
 | <a name="module_alb"></a> [alb](#module\_alb) | ./modules/alb | n/a |
 | <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
+| <a name="module_config"></a> [config](#module\_config) | ./modules/config | n/a |
 | <a name="module_iam"></a> [iam](#module\_iam) | ./modules/iam | n/a |
+| <a name="module_logging"></a> [logging](#module\_logging) | ./modules/logging | n/a |
 | <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | ./modules/monitoring | n/a |
 | <a name="module_networking"></a> [networking](#module\_networking) | ./modules/networking | n/a |
 | <a name="module_security"></a> [security](#module\_security) | ./modules/security | n/a |
@@ -207,15 +235,17 @@ No resources.
 |------|-------------|
 | <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the Application Load Balancer |
 | <a name="output_alb_sg_id"></a> [alb\_sg\_id](#output\_alb\_sg\_id) | Security Group ID for the Application Load Balancer |
+| <a name="output_ec2_role_arn"></a> [ec2\_role\_arn](#output\_ec2\_role\_arn) | ARN of the IAM role for EC2 instances |
 | <a name="output_ec2_sg_id"></a> [ec2\_sg\_id](#output\_ec2\_sg\_id) | Security Group ID for EC2 instances |
+| <a name="output_flow_logs_role_arn"></a> [flow\_logs\_role\_arn](#output\_flow\_logs\_role\_arn) | ARN of the IAM role for flow logs |
 | <a name="output_instance_ids"></a> [instance\_ids](#output\_instance\_ids) | List of EC2 instance IDs |
+| <a name="output_instance_ips"></a> [instance\_ips](#output\_instance\_ips) | List of EC2 instance IPs |
 | <a name="output_instance_profile"></a> [instance\_profile](#output\_instance\_profile) | Name of the IAM Instance Profile attached to EC2 |
 | <a name="output_internet_gateway_id"></a> [internet\_gateway\_id](#output\_internet\_gateway\_id) | ID of the Internet Gateway |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | List of NAT Gateway IDs |
 | <a name="output_private_ips"></a> [private\_ips](#output\_private\_ips) | Private IP addresses of the EC2 instances |
 | <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | List of private subnet IDs |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | List of public subnet IDs |
-| <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the IAM role for EC2 instances |
 | <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | ARN of the SNS topic for CloudWatch alerts |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the ALB target group |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the created VPC |
