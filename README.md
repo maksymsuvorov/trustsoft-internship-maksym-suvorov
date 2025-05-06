@@ -109,7 +109,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 - **Configured** similarly to other alarms with SNS alerting.
 
 ## AWS Config Rule – Required Tags
--  Enforce consistent tagging, applied on the two EC2 instances
+-  Enforce consistent tagging, applied on the two EC2 instances.
 - Tags enforced: `Name`
 
 ### 6.5.2025
@@ -121,21 +121,47 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 ![CPU Usage](./docs/opts-screenshots/cpu-usage.png)
 
-- Using `ps aux --sort=-%cpu` command I discovered that someone has run `yes` command in terminal   
+- Using `ps aux --sort=-%cpu` command I discovered that someone has run `yes` command in terminal.
+
 ![Yes command](./docs/opts-screenshots/yes.png)
 
 - My first idea was to kill this procces using `kill -9 <pid>` command. Unfortunately, right after killing the process, there was started the same command with another process ID.
-- Some script was running this program. Using `ps -o pid,ppid,cmd -p <id>` I have found this script. And deleted it
+- Some script was running this program. Using `ps -o pid,ppid,cmd -p <id>` I have found this script and deleted it.
 
 ![Yes command](./docs/opts-screenshots/ps-1.png)
 ![Yes command](./docs/opts-screenshots/ps-2.png)
 
 - After an hour, it was created again. So the issue was somewhere else. There was some kind of backdoor that was enabling deamon, which was starting this script or uploading it on the EC2 instance.
-- It occurred that there was a python script, named health-check, that was starting (uploading) the script.
+- It occurred that there was a python script, named `health-check`, that was starting (uploading) the script.
 
 ![Python script](./docs/opts-screenshots/python-script.png)
 
 - After I deleted it and disabled all related services, the problem was solved.
+
+## Task 2:
+> A customer complains that his application is not running on the server and that he cannot connect to it. Try to figure out why and fix it as follows
+
+- After this problem has occurred, I could not connect to the EC2 instance via SSM. I used an AWS EC2 feature and displayed and instance screenshot.
+
+![Instance screenshot](./docs/opts-screenshots/instance-screenshot.png)
+
+- The root account was disabled and I could not log in into account.
+- To find the origin of this problem, I needed the access to the instance disk.
+- So I created a snapshot of the instance disk via AWS console, created a new value using this snapshot. 
+- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) using the new volume. After mounting the new volume to the new EC2 instance's FS, I was trying to find what was causing the problem.
+- It turned out, that the problem was in the `etc/fstub` file.
+- The content of this file was
+```
+UUID=b1e84820-06b0-4d3b-9b5d-edd836bd5895 / xfs defaults,noatime 1 1
+UUID=b1e84820-06b0-4d3b-9b5d-edd836bd5895 / xfs defaults,noatime 1 1
+UUID=DED7-C018 /boot/efi vfat defaults,noatime,uid=0,gid=0,umask=0077,shortname=winnt,x-systemd.automount 0 2
+UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
+```
+
+- The first issue was that someone has mounted same UUID twice to `/`, which is invalid and will cause boot failures.
+- The second issue was that `mnt/kaput` does not exist in the system.
+- After deleting the first and the last rows, I have unmounted the disk from the helper EC2 instance and attached it to the damaged instance.
+- The problem was solved.
 
 ---
 
