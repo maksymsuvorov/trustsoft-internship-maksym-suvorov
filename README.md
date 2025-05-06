@@ -112,6 +112,31 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 -  Enforce consistent tagging, applied on the two EC2 instances
 - Tags enforced: `Name`
 
+### 6.5.2025
+
+## Task 1:
+> The customer is complaining that the server has high CPU usage. Try to determine what is causing the load and eliminate the problem 
+
+- After this problem occurred, the CPU metrics monitored via CloudWatch have risen.
+
+![CPU Usage](./docs/opts-screenshots/cpu-usage.png)
+
+- Using `ps aux --sort=-%cpu` command I discovered that someone has run `yes` command in terminal   
+![Yes command](./docs/opts-screenshots/yes.png)
+
+- My first idea was to kill this procces using `kill -9 <pid>` command. Unfortunately, right after killing the process, there was started the same command with another process ID.
+- Some script was running this program. Using `ps -o pid,ppid,cmd -p <id>` I have found this script. And deleted it
+
+![Yes command](./docs/opts-screenshots/ps-1.png)
+![Yes command](./docs/opts-screenshots/ps-2.png)
+
+- After an hour, it was created again. So the issue was somewhere else. There was some kind of backdoor that was enabling deamon, which was starting this script or uploading it on the EC2 instance.
+- It occurred that there was a python script, named health-check, that was starting (uploading) the script.
+
+![Python script](./docs/opts-screenshots/python-script.png)
+
+- After I deleted it and disabled all related services, the problem was solved.
+
 ---
 
 ## IaC
