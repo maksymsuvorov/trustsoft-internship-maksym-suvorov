@@ -4,6 +4,16 @@
 
 > This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
 
+1. [Architecture Diagram](#architecture-diagram)
+2. [Basic AWS Infrastructure](#252025)
+3. [Adding New CloudWatch Metrics](#552025)
+4. [EC2 Instances Troubleshooting](#652025)
+5. [Adding Auto Scaling Group + Testing](#752025)
+6. [IaC. Project Structure](#iac)
+7. [Deploying Infrastructure](#deploying)
+8. [Cleaning Up Infrastructure](#cleaning-up)
+9. [Documentation via terraform-docs](#documentation-generated-using-terraform-docs)
+
 ---
 
 ## Architecture diagram
@@ -171,7 +181,7 @@ sudo umount /mnt/rescue
 ```
 and attached it to the damaged instance. **The problem was solved.**
 
-### 7.3.2025
+### 7.5.2025
 
 ## Auto Scaling Group Policies Based on CPU Utilization:
 - **CloudWatch** alarms and scaling policies to automatically scale EC2 instances in or out based on average CPU utilization.
@@ -275,7 +285,7 @@ terraform apply    # Deploys resources
 ```
 terraform destroy
 ```
-> Warning: Terraform does not destroy AWS Flow Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)
+> Warning: Terraform does not destroy AWS Flow Log Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)
 
 ---
 
