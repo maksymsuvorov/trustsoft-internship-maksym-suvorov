@@ -1,8 +1,7 @@
 resource "aws_autoscaling_group" "web_asg" {
-  name                = "web-asg"
+  name                = "web-asg-internship-maksym"
   max_size            = 3
   min_size            = 2
-  desired_capacity    = 2
   vpc_zone_identifier = var.subnet_ids
   launch_template {
     id      = var.template_web_server_id
@@ -20,4 +19,6 @@ resource "aws_autoscaling_group" "web_asg" {
     propagate_at_launch = true
   }
 }
+
+
 

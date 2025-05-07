@@ -225,6 +225,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_out" {
   period              = 60
   statistic           = "Average"
   threshold           = 70
+  treat_missing_data  = "notBreaching"
   alarm_description   = "Scale out if CPU > 70% for 2 minutes"
   dimensions = {
     AutoScalingGroupName = var.asg_name
@@ -251,6 +252,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   period              = 60
   statistic           = "Average"
   threshold           = 30
+  treat_missing_data  = "notBreaching"
   alarm_description   = "Scale in if CPU < 30% for 2 minutes"
   dimensions = {
     AutoScalingGroupName = var.asg_name
