@@ -163,6 +163,32 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 - After deleting the first and the last rows, I have unmounted the disk from the helper EC2 instance and attached it to the damaged instance.
 - The problem was solved.
 
+### 7.3.2025
+
+## Auto Scaling Group Policies Based on CPU Utilization:
+- CloudWatch alarms and scaling policies to automatically scale EC2 instances in or out based on average CPU utilization
+- Scale Out when:
+    - Average CPU utilization > 70% for 2 minutes
+    - Adds one EC2 instance
+- Scale In when:
+  - Average CPU utilization < 30% for 2 minutes
+  - Removes one EC2 instance
+- I have tested this feature running `stress --cpu $(noproc) --timeout 300` command. I have run this command on both instances inside ASG. Right after running `stress` command the CloudWatch alarmed
+
+![CPU usage ASG](./docs/opts-screenshots/cpu-usgae-asg.png)
+
+- After two minutes in the alarm state, CloudWatch metrics scaling policy triggered `scale out` policy and there was created another EC2 instance inside the same ASG.
+
+![EC2-3](./docs/opts-screenshots/ec2-3.png)
+
+- It was also successfully connected to ALB
+
+![ALB ASG](./docs/opts-screenshots/alb.png)
+
+- After I had stooped `stress` command on both instances, and the CPU usage level decreased <30%, the third instance was automatically deleted.
+
+![EC2-3 deleted](./docs/opts-screenshots/ec2-3-del.png)
+
 ---
 
 ## IaC
