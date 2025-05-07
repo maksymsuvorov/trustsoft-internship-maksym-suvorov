@@ -7,3 +7,7 @@ variable "email_addresses" {
   description = "List of email addresses to subscribe to the SNS alert topic"
   type        = list(string)
 }
+
+variable "asg_name" {
+  type = string
+}

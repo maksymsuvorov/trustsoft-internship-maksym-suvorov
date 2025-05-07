@@ -1,3 +1,4 @@
+# Define a CloudWatch Agent configuration in SSM Parameter Store
 resource "aws_ssm_parameter" "cw_agent_config" {
   name = "/cloudwatch-agent/config"
   type = "String"
@@ -8,7 +9,7 @@ resource "aws_ssm_parameter" "cw_agent_config" {
       run_as_user                 = "root"
     }
     metrics = {
-      namespace = "CWAgent"
+      namespace = "CWAgent" # Metric namespace in CloudWatch
       append_dimensions = {
         InstanceId = "$${aws:InstanceId}"
       }
@@ -40,6 +41,7 @@ resource "aws_ssm_document" "cw_agent_install" {
   document_type   = "Command"
   document_format = "YAML"
 
+  # Installs CloudWatch Agent, used by disk_used_percent, mem_used_percent...
   content = <<DOC
 schemaVersion: '2.2'
 description: 'Install and configure CloudWatch agent'

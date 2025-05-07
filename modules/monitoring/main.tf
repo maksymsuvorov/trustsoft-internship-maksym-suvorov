@@ -57,7 +57,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_cpu" {
   }
 }
 
-# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+# CloudWatch Alarm for EC2 Instance 1 Mem Used Percent utilization
+# Requires installed CloudWatch Agent on the instance
 resource "aws_cloudwatch_metric_alarm" "ec2_1_mem" {
   alarm_name                = "ec2-1-mem-utilization-internship-maksym"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -80,7 +81,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_mem" {
   }
 }
 
-# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+# CloudWatch Alarm for EC2 Instance 2 Mem Used Percent utilization
+# Requires installed CloudWatch Agent on the instance
 resource "aws_cloudwatch_metric_alarm" "ec2_2_mem" {
   alarm_name                = "ec2-2-mem-utilization-internship-maksym"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -103,7 +105,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_mem" {
   }
 }
 
-# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+# CloudWatch Alarm for EC2 Instance 1 Disk Used Percent utilization
+# Requires installed CloudWatch Agent on the instance
 resource "aws_cloudwatch_metric_alarm" "ec2_1_disk" {
   alarm_name                = "ec2-1-disk-utilization-internship-maksym"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -129,7 +132,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_disk" {
   }
 }
 
-# CloudWatch Alarm for EC2 Instance 2 CPU utilization
+# CloudWatch Alarm for EC2 Instance 2 Disk Used Percent utilization
+# Requires installed CloudWatch Agent on the instance
 resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
   alarm_name                = "ec2-2-disk-utilization-internship-maksym"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -155,6 +159,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_disk" {
   }
 }
 
+# CloudWatch Alarm for EC2 Instance 1 status check
 resource "aws_cloudwatch_metric_alarm" "ec2_1_status_check" {
   alarm_name                = "ec2-1-status-check-failed-internship-maksym"
   comparison_operator       = "GreaterThanThreshold"
@@ -177,6 +182,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_1_status_check" {
   }
 }
 
+# CloudWatch Alarm for EC2 Instance 2 status check
 resource "aws_cloudwatch_metric_alarm" "ec2_2_status_check" {
   alarm_name                = "ec2-2-status-check-failed-internship-maksym"
   comparison_operator       = "GreaterThanThreshold"
@@ -200,3 +206,54 @@ resource "aws_cloudwatch_metric_alarm" "ec2_2_status_check" {
 }
 
 
+# Adds 1 instance when triggered
+resource "aws_autoscaling_policy" "scale_out_policy" {
+  name                   = "scale-out-policy-internship-maksym"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = var.asg_name
+}
+
+# Triggers scale-out when CPU > 70% for 2 minutes
+resource "aws_cloudwatch_metric_alarm" "scale_out" {
+  alarm_name          = "asg-scale-out-internship-maksym"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Scale out if CPU > 70% for 2 minutes"
+  dimensions = {
+    AutoScalingGroupName = var.asg_name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_out_policy.arn]
+}
+
+# Removes 1 instance when triggered
+resource "aws_autoscaling_policy" "scale_in_policy" {
+  name                   = "scale-in-policy-policy-internship-maksym"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = var.asg_name
+}
+
+# Triggers scale-in when CPU < 30% for 2 minutes
+resource "aws_cloudwatch_metric_alarm" "scale_in" {
+  alarm_name          = "asg-scale-in-internship-maksym"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 30
+  alarm_description   = "Scale in if CPU < 30% for 2 minutes"
+  dimensions = {
+    AutoScalingGroupName = var.asg_name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_in_policy.arn]
+}

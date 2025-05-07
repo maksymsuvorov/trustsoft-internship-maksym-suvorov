@@ -53,6 +53,20 @@ module "alb" {
   vpc_id              = module.networking.vpc_id
 }
 
+module "launch_template" {
+  source           = "./modules/launch_template"
+  user_data_file   = var.user_data_file
+  ec2_sg_id        = module.security.ec2_sg_id
+  ec2_profile_name = module.iam.instance_profile.name
+}
+
+module "autoscaling_group" {
+  source                 = "./modules/autoscaling_group"
+  subnet_ids             = module.networking.private_subnet_ids
+  template_web_server_id = module.launch_template.launch_template_id
+  lb_target_group_arns   = [module.alb.target_group_arn]
+}
+
 module "cloudwatch-agent" {
   source = "./modules/cloudwatch-agent"
 }
@@ -61,6 +75,7 @@ module "monitoring" {
   source          = "./modules/monitoring"
   email_addresses = var.email_addresses
   instance_ids    = module.compute.instance_ids
+  asg_name        = module.autoscaling_group.asg_name
 }
 
 module "logging" {
