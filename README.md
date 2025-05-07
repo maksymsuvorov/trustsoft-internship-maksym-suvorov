@@ -1,12 +1,14 @@
 # Terraform AWS Infrastructure - Trustsoft Internship Project
 
-# Project Overview
+> This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
 
-This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
+## Project Overview
+
+
 
 ---
 
-# Architecture diagram
+## Architecture diagram
 ![Architecture diagram](./docs/diagram.png)
 
 ---
@@ -117,7 +119,7 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 ## Task 1:
 > The customer is complaining that the server has high CPU usage. Try to determine what is causing the load and eliminate the problem 
 
-- After this problem occurred, the CPU metrics monitored via CloudWatch have risen.
+- After this problem occurred, the CPU metrics monitored via **CloudWatch** have risen.
 
 ![CPU Usage](./docs/opts-screenshots/cpu-usage.png)
 
@@ -125,30 +127,35 @@ This project uses **Terraform** to provision an AWS environment, broken into log
 
 ![Yes command](./docs/opts-screenshots/yes.png)
 
-- My first idea was to kill this procces using `kill -9 <pid>` command. Unfortunately, right after killing the process, there was started the same command with another process ID.
-- Some script was running this program. Using `ps -o pid,ppid,cmd -p <id>` I have found this script and deleted it.
+- My first idea was to kill this process using `kill -9 <pid>` command. Unfortunately, right after killing the process, there was started the same command with another process ID.
+- Some script was constantly running this command. Using `ps -o pid,ppid,cmd -p <id>` I have found this script and deleted it.
 
 ![Yes command](./docs/opts-screenshots/ps-1.png)
 ![Yes command](./docs/opts-screenshots/ps-2.png)
 
-- After an hour, it was created again. So the issue was somewhere else. There was some kind of backdoor that was enabling deamon, which was starting this script or uploading it on the EC2 instance.
+- After an hour, it was created again. So the issue was somewhere else. There was some kind of **backdoor** that was was starting this script or uploading it on the EC2 instance.
 - It occurred that there was a python script, named `health-check`, that was starting (uploading) the script.
 
 ![Python script](./docs/opts-screenshots/python-script.png)
 
-- After I deleted it and disabled all related services, the problem was solved.
+- After I deleted it and disabled all related services, **the problem was solved.**
 
 ## Task 2:
 > A customer complains that his application is not running on the server and that he cannot connect to it. Try to figure out why and fix it as follows
 
-- After this problem has occurred, I could not connect to the EC2 instance via SSM. I used an AWS EC2 feature and displayed an instance screenshot.
+- After this problem had occurred, I could not connect to the EC2 instance via **SSM**. I used an AWS EC2 feature and displayed an instance screenshot.
 
 ![Instance screenshot](./docs/opts-screenshots/instance-screenshot.png)
 
-- The root account was disabled and I could not log in into account.
+- The root account was **disabled** and I could not log in into account.
 - To find the origin of this problem, I needed the access to the instance disk.
-- So I created a snapshot of the instance disk via AWS console and created a new value using this snapshot. 
-- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) using the new volume. After mounting the new volume to the new EC2 instance's FS, I was trying to find what was causing the problem.
+- So I created a snapshot of the instance disk via the AWS console and created a new value using this snapshot. 
+- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) using the new volume. After mounting the new volume to the new EC2 instance's FS, 
+```
+sudo mkdir /mnt/rescue
+sudo mount xvf /dev/xvdf1 /mnt/rescue
+```
+I was trying to find what was causing the problem.
 - It turned out, that the problem was in the `etc/fstub` file.
 - The content of the file was
 ```
@@ -158,22 +165,25 @@ UUID=DED7-C018 /boot/efi vfat defaults,noatime,uid=0,gid=0,umask=0077,shortname=
 UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 ```
 
-- The first issue was that someone has mounted the same UUID twice to `/`, which is invalid and will cause boot failures.
+- The first issue was that someone has mounted the same **UUID** twice to `/`, which is invalid and will cause boot failures.
 - The second issue was that `mnt/kaput` does not exist in the system.
-- After deleting the first and the last rows, I have unmounted the disk from the helper EC2 instance and attached it to the damaged instance.
-- The problem was solved.
+- After deleting the first and the last rows, I have unmounted the disk from the helper EC2 instance 
+```
+sudo umount /mnt/rescue
+```
+and attached it to the damaged instance. **The problem was solved.**
 
 ### 7.3.2025
 
 ## Auto Scaling Group Policies Based on CPU Utilization:
-- CloudWatch alarms and scaling policies to automatically scale EC2 instances in or out based on average CPU utilization
+- **CloudWatch** alarms and scaling policies to automatically scale EC2 instances in or out based on average CPU utilization.
 - Scale Out when:
-    - Average CPU utilization > 70% for 2 minutes
-    - Adds one EC2 instance
+    - Average CPU utilization > 70% for 2 minutes.
+    - Adds one EC2 instance.
 - Scale In when:
-  - Average CPU utilization < 30% for 2 minutes
-  - Removes one EC2 instance
-- I have tested this feature running `stress --cpu $(noproc) --timeout 300` command. I have run this command on both instances inside ASG. Right after running `stress` command the CloudWatch alarmed
+  - Average CPU utilization < 30% for 2 minutes.
+  - Removes one EC2 instance.
+- I have tested this feature running `stress --cpu $(noproc) --timeout 300` command. I have run this command on both instances inside **ASG**. Right after running `stress` command the **CloudWatch** alarmed
 
 ![CPU usage ASG](./docs/opts-screenshots/cpu-usgae-asg.png)
 
@@ -185,7 +195,7 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 
 ![ALB ASG](./docs/opts-screenshots/alb.png)
 
-- After I had stooped `stress` command on both instances, and the CPU usage level decreased <30%, the third instance was automatically deleted.
+- After I had stooped `stress` command on both instances and the CPU usage level decreased <30%, the third instance was automatically deleted.
 
 ![EC2-3 deleted](./docs/opts-screenshots/ec2-3-del.png)
 
@@ -233,12 +243,21 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 │   │   ├── main.tf
 │   │   ├── variables.tf      
 │   │   └── outputs.tf        # Outputs: cloudwatch_ssm_parameter_name, cloudwatch_ssm_document_name, cloudwatch_ssm_association_id
+│   ├── launch_template/      # Module for defining EC2 launch templates, used by Auto Scaling Group
+│   │   ├── main.tf
+│   │   ├── variables.tf      
+│   │   └── outputs.tf        # Outputs: launch_template_id, launch_template_name, launch_template_latest_version
+│   ├── autoscaling_group/    # Module for defining the Auto Scaling Group
+│   │   ├── main.tf
+│   │   ├── variables.tf      
+│   │   └── outputs.tf        # Outputs: asg_name
 │   └── monitoring/           # Module for CloudWatch alarms & SNS notifications
 │       ├── main.tf
 │       ├── variables.tf      # Inputs: instance_ids, email_addresses
 │       └── outputs.tf        # Outputs: sns_topic_arn
 ├── scripts/                  # Helper scripts and user_data files
-└────── userdata.sh           # Bootstraps EC2 with Web Server and   SSM
+│   └── generate-docs.sh      # Script that generates documentation for each module
+└────── userdata.sh           # Bootstraps EC2 with Web Server and SSM
 ```
 
 ---

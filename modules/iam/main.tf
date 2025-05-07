@@ -36,7 +36,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_agent_policy" {
 }
 
 
-# 1) IAM Role assumable by the VPC Flow Logs service
+# IAM Role assumable by the VPC Flow Logs service
 resource "aws_iam_role" "vpc_flow_logs_role" {
   name = "vpc-flow-logs-role-internship-maksym"
 
@@ -50,7 +50,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
   })
 }
 
-# 2) Custom Policy granting CW Logs permissions
+# Custom Policy granting CW Logs permissions
 resource "aws_iam_policy" "vpc_flow_logs_policy" {
   name        = "VPCFlowLogsDeliveryPolicy-IntersnhipMaksym"
   description = "Allows VPC Flow Logs service to write flow logs into CloudWatch Logs"
@@ -69,7 +69,7 @@ resource "aws_iam_policy" "vpc_flow_logs_policy" {
   })
 }
 
-# 3) Attach the policy to the role
+# Attach the policy to the role
 resource "aws_iam_role_policy_attachment" "vpc_flow_logs_attach" {
   role       = aws_iam_role.vpc_flow_logs_role.name
   policy_arn = aws_iam_policy.vpc_flow_logs_policy.arn

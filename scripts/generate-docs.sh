@@ -1,3 +1,4 @@
+# Docker needs to be installed
 # Script that generates documentation for each module using terraform-docs
 # Run "chmod +x generate-docs.sh" before usage
 # Run this script from root folder
