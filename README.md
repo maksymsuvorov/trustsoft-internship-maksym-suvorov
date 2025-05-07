@@ -1,10 +1,8 @@
 # Terraform AWS Infrastructure - Trustsoft Internship Project
 
-> This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
-
 ## Project Overview
 
-
+> This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
 
 ---
 
