@@ -136,17 +136,24 @@
 ![Yes command](./docs/opts-screenshots/yes.png)
 
 - My first idea was to kill this process using `kill -9 <pid>` command. Unfortunately, right after killing the process, there was started the same command with another process ID.
-- Some script was constantly running this command. Using `ps -o pid,ppid,cmd -p <id>` I have found this script and deleted it.
+- Some script was constantly running this command. Using `ps -o pid,ppid,cmd -p <id>` I have found this script.
 
 ![Yes command](./docs/opts-screenshots/ps-1.png)
 ![Yes command](./docs/opts-screenshots/ps-2.png)
 
-- After an hour, it was created again. So the issue was somewhere else. There was some kind of **backdoor** that was was starting this script or uploading it on the EC2 instance.
+- The PID 1 of the process often indicates that it is a system process that starts right after the boot. It was named `systemd-helper` and its name says, that it was managed by `systemd` service. The content of the file was
+
+```
+#!/bin/bash
+yes > /dev/null
+```
+
+- I have deleted this script and killed the process. After an hour, the process was created again. So the issue was somewhere else. There was some kind of **backdoor** that was starting this script and uploading it after deletion on the EC2 instance.
 - It occurred that there was a python script, named `health-check`, that was starting (uploading) the script.
 
 ![Python script](./docs/opts-screenshots/python-script.png)
 
-- After I deleted it and disabled all related services, **the problem was solved.**
+- After I deleted it, killed the process and disabled all related services, **the problem was solved.**
 
 ## Task 2:
 > A customer complains that his application is not running on the server and that he cannot connect to it. Try to figure out why and fix it as follows
@@ -155,16 +162,25 @@
 
 ![Instance screenshot](./docs/opts-screenshots/instance-screenshot.png)
 
-- The root account was **disabled** and I could not log in into account.
+- After checking **system logs**, I have discovered that the system was in an emergency mode.
+- There was also an error message that said
+```
+[ TIME ] Timed out waiting for device /dev/disk/bu-uuid/11111-2222-3333-4444-555555555555.
+[DEPEND] Dependency failed for /mnt/kaput.
+[FAILED] Failed to mount var-lib-nfs.mount - RPC Pipe File System.
+[DEPEND] Dependency failed for Local File Systems 
+```
 - To find the origin of this problem, I needed the access to the instance disk.
 - So I created a snapshot of the instance volume via the **AWS console** and created a new volume using this snapshot. 
-- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) and attached the newly created volume as a **secondary** volume. After mounting the new volume to the new EC2 instance's FS with 
+- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) and attached the newly created volume as a **secondary** volume. After connecting to the helper instance and mounting the new volume to the new EC2 instance's FS with 
+
 ```
 sudo mkdir /mnt/rescue
 sudo mount xvf /dev/xvdf1 /mnt/rescue
 ```
 I was trying to find what was causing the problem.
-- After checking the **system logs**, it turned out, that the problem was in the `etc/fstub` file.
+
+- After checking the `etc/fstub` file of the damaged instance, it occurred its content was suspicious.
 - The content of the file was
 ```
 UUID=b1e84820-06b0-4d3b-9b5d-edd836bd5895 / xfs defaults,noatime 1 1
