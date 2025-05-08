@@ -33,4 +33,4 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | n/a |
+| <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the Auto Scaling Group |

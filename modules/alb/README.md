@@ -39,6 +39,7 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_alb_arn"></a> [alb\_arn](#output\_alb\_arn) | n/a |
+| <a name="output_alb_arn_suffix"></a> [alb\_arn\_suffix](#output\_alb\_arn\_suffix) | n/a |
 | <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | Public DNS name of the ALB |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the ALB target group |
 | <a name="output_target_group_arn_suffix"></a> [target\_group\_arn\_suffix](#output\_target\_group\_arn\_suffix) | n/a |

@@ -270,8 +270,8 @@ resource "aws_autoscaling_policy" "scale_on_requests" {
       predefined_metric_type = "ALBRequestCountPerTarget"
       resource_label         = "${var.alb_arn_suffix}/${var.alb_tg_arn_suffix}"
     }
-    target_value       = 1
-    disable_scale_in   = false
+    target_value     = 1
+    disable_scale_in = false
   }
 }
 
@@ -283,7 +283,7 @@ resource "aws_autoscaling_schedule" "scale_up_time" {
   min_size         = 2
   max_size         = 3
 
-  recurrence = "25 10 * * 1-5"  # 12:25 Prague time → 10:25 UTC
+  recurrence = "25 10 * * 1-5" # 12:25 Prague time → 10:25 UTC
 }
 
 resource "aws_autoscaling_schedule" "scale_in_time" {
@@ -294,5 +294,5 @@ resource "aws_autoscaling_schedule" "scale_in_time" {
   min_size         = 2
   max_size         = 3
 
-  recurrence = "30 10 * * 1-5"  # 12:30 Prague (10:30 UTC)
+  recurrence = "30 10 * * 1-5" # 12:30 Prague (10:30 UTC)
 }
