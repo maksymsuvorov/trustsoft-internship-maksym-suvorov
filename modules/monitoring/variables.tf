@@ -11,3 +11,11 @@ variable "email_addresses" {
 variable "asg_name" {
   type = string
 }
+
+variable "alb_arn_suffix" {
+  type = string
+}
+
+variable "alb_tg_arn_suffix" {
+  type = string
+}

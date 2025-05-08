@@ -157,14 +157,14 @@
 
 - The root account was **disabled** and I could not log in into account.
 - To find the origin of this problem, I needed the access to the instance disk.
-- So I created a snapshot of the instance disk via the AWS console and created a new value using this snapshot. 
-- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) using the new volume. After mounting the new volume to the new EC2 instance's FS, 
+- So I created a snapshot of the instance volume via the **AWS console** and created a new volume using this snapshot. 
+- Then I have created a new EC2 instance (in the same AZ used by the damaged instance) and attached the newly created volume as a **secondary** volume. After mounting the new volume to the new EC2 instance's FS with 
 ```
 sudo mkdir /mnt/rescue
 sudo mount xvf /dev/xvdf1 /mnt/rescue
 ```
 I was trying to find what was causing the problem.
-- It turned out, that the problem was in the `etc/fstub` file.
+- After checking the **system logs**, it turned out, that the problem was in the `etc/fstub` file.
 - The content of the file was
 ```
 UUID=b1e84820-06b0-4d3b-9b5d-edd836bd5895 / xfs defaults,noatime 1 1
@@ -175,11 +175,11 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 
 - The first issue was that someone has mounted the same **UUID** twice to `/`, which is invalid and will cause boot failures.
 - The second issue was that `mnt/kaput` does not exist in the system.
-- After deleting the first and the last rows, I have unmounted the disk from the helper EC2 instance 
+- After deleting the first and the last rows, I have unmounted the volume from the helper EC2 instance.
 ```
 sudo umount /mnt/rescue
 ```
-and attached it to the damaged instance. **The problem was solved.**
+Then I have attached it to the damaged instance as a **root** volume. **The problem was solved.**
 
 ### 7.5.2025
 
@@ -206,6 +206,39 @@ and attached it to the damaged instance. **The problem was solved.**
 - After I had stooped `stress` command on both instances and the CPU usage level decreased <30%, the third instance was automatically deleted.
 
 ![EC2-3 deleted](./docs/opts-screenshots/ec2-3-del.png)
+
+## Auto Scaling Group Policies Based on ALB Request Count:
+- AWS continuously measures how many requests each instance is serving.
+- When the **average request count per instance exceeds the target threshold (one request)**, a new instance is launched to balance the load.
+
+![Request Count Scale Up](./docs/opts-screenshots/req.png)
+
+- I have tested this feature using [Apache Benchmark](https://httpd.apache.org/docs/2.4/programs/ab.html) utility, running `ab -n 5000 -c 50 http://<alb_dns_name>/` command on the local computer. This command sends 5000 requests (50 requests at the same time) to the ALB in a short time period. **CloudWatch** metrics have shown:
+
+![Request Count Scale Up](docs/opts-screenshots/requests-metrics.png)
+
+- ASG has immediately created the new EC2 instance.
+
+![New EC2 instance](docs/opts-screenshots/new-ec2-asg.png)
+
+## Scheduled Scaling
+- Scheduled scaling allows changing the number of running instances at specific **times of day**, regardless of load.
+- We can scale up the number of EC2 instances in the morning when traffic usually increases, and scale down in the evening to save costs.
+- Since Terraform only supports **UTC times**, **local Prague times** must be manually converted.
+- For test cases, the scaling time was set to:
+
+| Activity      | Prague Time | UTC Time |
+|---------------|-------------|----------|
+| **Scale Out** | 12:25       | 10:25    |
+| **Scale In**  | 12:30       | 10:30    |
+
+![Scaling out](docs/opts-screenshots/scale-out.png)
+
+>After **ASG** receives a signal to scale in the instances, it usually takes a couple of minutes to see the actual scaling.
+
+![Scaling in](docs/opts-screenshots/scale-in.png)
+
+> These scheduled actions run daily on **weekdays** unless further restricted.
 
 ---
 

@@ -259,3 +259,40 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   }
   alarm_actions = [aws_autoscaling_policy.scale_in_policy.arn]
 }
+
+resource "aws_autoscaling_policy" "scale_on_requests" {
+  name                   = "scale-on-request-count-internship-maksym"
+  autoscaling_group_name = var.asg_name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${var.alb_arn_suffix}/${var.alb_tg_arn_suffix}"
+    }
+    target_value       = 1
+    disable_scale_in   = false
+  }
+}
+
+resource "aws_autoscaling_schedule" "scale_up_time" {
+  scheduled_action_name  = "scale-up-utc-intrenship-maksym"
+  autoscaling_group_name = var.asg_name
+
+  desired_capacity = 3
+  min_size         = 2
+  max_size         = 3
+
+  recurrence = "25 10 * * 1-5"  # 12:25 Prague time → 10:25 UTC
+}
+
+resource "aws_autoscaling_schedule" "scale_in_time" {
+  scheduled_action_name  = "scale-in-utc-intrenship-maksym"
+  autoscaling_group_name = var.asg_name
+
+  desired_capacity = 2
+  min_size         = 2
+  max_size         = 3
+
+  recurrence = "30 10 * * 1-5"  # 12:30 Prague (10:30 UTC)
+}

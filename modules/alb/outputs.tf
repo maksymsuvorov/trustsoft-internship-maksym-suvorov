@@ -15,3 +15,7 @@ output "target_group_arn" {
 output "target_group_arn_suffix" {
   value = aws_lb_target_group.lb_tg.arn_suffix
 }
+
+output "alb_arn_suffix" {
+  value = aws_lb.lb.arn_suffix
+}

@@ -76,6 +76,8 @@ module "monitoring" {
   email_addresses = var.email_addresses
   instance_ids    = module.compute.instance_ids
   asg_name        = module.autoscaling_group.asg_name
+  alb_arn_suffix  = module.alb.alb_arn_suffix
+  alb_tg_arn_suffix = module.alb.target_group_arn_suffix
 }
 
 module "logging" {
