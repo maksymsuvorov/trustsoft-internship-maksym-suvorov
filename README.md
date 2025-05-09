@@ -108,7 +108,6 @@
 > **Potential Improvements:**
 > - Refactor alarm resources to use `for_each` for easier scaling and modularity. 
 > - Automate the creation of multiple alarms with a `map` variable to reduce code duplication. 
-> - Consider adding a centralized CloudWatch dashboard for a visual overview of system health.
 
 ---
 
@@ -282,8 +281,7 @@ Then I have attached it to the damaged instance as a **root** volume. **The prob
 - These scheduled actions run daily on **weekdays** unless further restricted.
 
 > **Potential Improvements:**
-> - Add ASG lifecycle hooks to gracefully drain traffic from instances before termination. 
-> - Parameterize scheduled scaling times based on environment (dev/staging/prod). 
+> - Parameterize scheduled scaling times based on the environment (dev/staging/prod). 
 > - Implement dynamic scaling policies using CloudWatch anomaly detection for smarter scale-in/out.
 
 ---
