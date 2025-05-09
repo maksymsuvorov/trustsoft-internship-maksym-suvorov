@@ -29,7 +29,7 @@
 ## Networking
 
 - **VPC** with public and private subnets across two AZs.
-- **Availability Zones (AZs):** 2 ( eu-central-1a, eu-central-1b).
+- **Availability Zones (AZs):** 2 ( eu-west-1a, eu-west-1b).
 - **Internet Gateway** provides internet access to resources in **public subnets**.
   - Referenced in the public route table
 - **NAT Gateways** (one per AZ) allow instances in **private subnets** to:
@@ -104,6 +104,7 @@
 - **CloudWatch Agent** on EC2 for logs and custom metrics  
 - **CloudWatch Alarms** monitoring CPU utilization  
 - **SNS Topic** for email alerts to a configurable list of recipients
+>  Use `for_each` instead of hardcoding multiple aws_cloudwatch_metric_alarm resources
 
 ---
 
