@@ -350,7 +350,7 @@ Then I have attached it to the damaged instance as a **root** volume. **The prob
 ---
 
 # Deploying
-```
+```shell
 terraform init     # Initializes working directory
 terraform plan     # Shows what will be created
 terraform apply    # Deploys resources
@@ -361,7 +361,7 @@ terraform apply    # Deploys resources
 ---
 
 # Cleaning Up
-```hcl
+```shell
 terraform destroy
 ```
 > **Warning: Terraform does not destroy AWS Flow Log Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)**
