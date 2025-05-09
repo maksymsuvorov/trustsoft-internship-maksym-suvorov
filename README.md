@@ -4,11 +4,14 @@
 
 > This project uses **Terraform** to provision an AWS environment, broken into logical modules for clarity and reuse.
 
+> This infrastructure includes resources like EC2, ALB, NAT Gateways, and CloudWatch. Costs may vary depending on region and usage. Consider using AWS Free Tier or budget alerts.
+
+
 1. [Architecture Diagram](#architecture-diagram)
 2. [Basic AWS Infrastructure](#252025)
-3. [Adding New CloudWatch Metrics](#552025)
+3. [CloudWatch Metrics](#552025)
 4. [EC2 Instances Troubleshooting](#652025)
-5. [Adding Auto Scaling Group + Testing](#752025)
+5. [Auto Scaling Group + Testing](#752025)
 6. [IaC. Project Structure](#iac)
 7. [Deploying Infrastructure](#deploying)
 8. [Cleaning Up Infrastructure](#cleaning-up)
@@ -24,10 +27,14 @@
 
 ## Networking
 
-- **VPC** with public and private subnets across two AZs 
-- **Internet Gateway** for public-facing traffic  
-- **NAT Gateways** (one per AZ) to allow private EC2 instances outbound Internet access without public IPs  
-- Route tables and associations connecting all pieces
+- **VPC** with public and private subnets across two AZs.
+- **Availability Zones (AZs):** 2 ( eu-central-1a, eu-central-1b).
+- **Internet Gateway** provides internet access to resources in **public subnets**.
+  - Referenced in the public route table
+- **NAT Gateways** (one per AZ) allow instances in **private subnets** to:
+  - Access the internet
+  - Remain unreachable from the public internet
+- Route tables and associations are connecting all pieces.
 
 ### 1. Public Route Table (`public_subnet_rt`)
 
@@ -37,10 +44,10 @@
 
 - **Routes:**  
   
-| Destination   | Target             | Purpose                                         |
-  |---------------|--------------------|-------------------------------------------------|
-  | `0.0.0.0/0`   | Internet Gateway   | Allows inbound Internet traffic to ALB, NAT GWs |
-  | `local`       | `–` (VPC router)   | Enables inside‑VPC communication                |
+  | Destination | Target           | Purpose                                         |
+  |-------------|------------------|-------------------------------------------------|
+  | `0.0.0.0/0` | Internet Gateway | Allows inbound Internet traffic to ALB, NAT GWs |
+  | `local`     | `–` (VPC router) | Enables inside‑VPC communication                |
 
 ### 2. Private Route Table AZ‑1 (`private_subnet_rt_1`)
 
@@ -49,10 +56,10 @@
 
 - **Routes:**  
 
-  | Destination   | Target                         | Purpose                                        |
-  |---------------|--------------------------------|------------------------------------------------|
-  | `0.0.0.0/0`   | NAT Gateway 1 (`nat_gw_1`)     | Allows EC2 in private subnet to reach Internet |
-  | `local`       | `–` (VPC router)               | Enables inside‑VPC communication               |
+  | Destination | Target                      | Purpose                                        |
+  |-------------|-----------------------------|------------------------------------------------|
+  | `0.0.0.0/0` | NAT Gateway 1 (`nat_gw_1`)  | Allows EC2 in private subnet to reach Internet |
+  | `local`     | `–` (VPC router)            | Enables inside‑VPC communication               |
 
 ### 3. Private Route Table AZ‑2 (`private_subnet_rt_2`)
 
@@ -61,10 +68,10 @@
 
 - **Routes:**
 
-  | Destination   | Target                         | Purpose                                        |
-  |---------------|--------------------------------|------------------------------------------------|
-  | `0.0.0.0/0`   | NAT Gateway 2 (`nat_gw_2`)     | Allows EC2 in private subnet to reach Internet |
-  | `local`       | `–` (VPC router)               | Enables inside‑VPC communication               |
+  | Destination | Target                      | Purpose                                        |
+  |-------------|-----------------------------|------------------------------------------------|
+  | `0.0.0.0/0` | NAT Gateway 2 (`nat_gw_2`)  | Allows EC2 in private subnet to reach Internet |
+  | `local`     | `–` (VPC router)            | Enables inside‑VPC communication               |
 
 
 ---
@@ -73,9 +80,10 @@
 
 - **Security Groups**  
   - ALB SG: allows HTTP from the Internet  
-  - EC2 SG: allows HTTP only from the ALB  
-- **IAM Role** + **Instance Profile**  
-  - Grants EC2 instances permission for **SSM Session Manager** (no SSH keys needed)
+  - EC2 SG: allows HTTP only from the ALB
+  - IAM roles and policies used in this project are scoped only to **required permissions**.
+  - EC2 instances do not require or expose SSH access. 
+    - Management and troubleshooting are handled entirely via **AWS Systems Manager Session Manager**.
 
 ---
 
@@ -99,8 +107,10 @@
 ---
 
 ## Remote backend
-- Remote state stored in **S3** (with versioning and SSE-KMS encryption)  
-- State locking **without DynamoDB** using S3 native locking
+- Remote state stored in **S3** (with versioning and SSE-KMS encryption).
+  - **Versioning** enables recovery from accidental changes.
+  - **SSE-KMS** encryption encrypts state files at rest using customer-managed keys.
+- State locking **without DynamoDB** using S3 native locking.
 
 ### 5.5.2025
 
@@ -110,16 +120,21 @@
 
 ## EC2 CloudWatch Agent
 - Installed CloudWatch Agent on EC2 instances via SSM.
-- Monitored Metrics: `mem_used_percent`, `disk_used_percent`
-- Config stored in **SSM Parameter Store**
-- Installed via **SSM Document** + **Association**
+- **Ansible** script inside SSM Document 
+  - Installs the **CloudWatch Agent** 
+  - **Fetches the config** from Parameter Store 
+  - Starts the **agent**
+- Monitored Metrics: `mem_used_percent`, `disk_used_percent`.
+- Config stored in **SSM Parameter Store**, preventing sensitive information (like credentials or internal metrics config) from being stored in plain text within Terraform code or `user_data`.
+- Installed via **SSM Document** + **Association**.
+- SSm Association Automatically applies the installation document to EC2 instances tagged with `Monitoring=enabled`.
 
 ## EC2 Status Check Alarm
 - Ensures the instance is healthy on OS level.
 - **Configured** similarly to other alarms with SNS alerting.
 
 ## AWS Config Rule – Required Tags
--  Enforce consistent tagging, applied on the two EC2 instances.
+- Enforce consistent tagging, applied on the two EC2 instances.
 - Tags enforced: `Name`
 
 ### 6.5.2025
@@ -153,7 +168,7 @@ yes > /dev/null
 
 ![Python script](./docs/opts-screenshots/python-script.png)
 
-- After I deleted it, killed the process and disabled all related services, **the problem was solved.**
+- After I deleted it, killed the process, and disabled all related services, **the problem was solved.**
 
 ## Task 2:
 > A customer complains that his application is not running on the server and that he cannot connect to it. Try to figure out why and fix it as follows
@@ -338,6 +353,37 @@ terraform destroy
 
 ---
 
+# Testing
+
+- Basic Connectivity & ALB Routing
+  - **Step 1:** Obtain the ALB DNS name from Terraform outputs or AWS Console. 
+  - **Step 2:** Open the DNS in your browser (`http://<alb_dns_name>`). 
+  - **Step 3:** Confirm that **HTTP traffic is load-balanced** across multiple EC2 instances (if ASG is in use). 
+    - You can refresh multiple times and monitor ALB access logs or instance logs.
+- EC2 and SSM Access
+  - **Step 1:** Navigate to Systems Manager > Session Manager in AWS Console. 
+  - **Step 2:** Start a session with a running EC2 instance. 
+    - You should be able to open a shell without SSH keys. 
+  - **Step 3:** Run a basic health check:
+    ```
+    systemctl status amazon-cloudwatch-agent
+    df -h
+    free -m
+    ``` 
+- CloudWatch Agent Metrics 
+  - **Step 1:** Go to CloudWatch > Metrics > CWAgent namespace. 
+  - **Step 2:** Check that metrics like `mem_used_percent`, `disk_used_percent` are available. 
+    - Ensure data is updating.
+- SNS & CloudWatch Alarms 
+  - **Step 1:** Trigger a CloudWatch alarm (e.g., CPU or status check failure). 
+  - **Step 2:** Check that an alert is sent to the configured email (subscribe first). 
+    - Confirm email receipt and alarm name/context.
+- Auto Scaling
+  - All tests are described [here](#auto-scaling-group-policies-based-on-cpu-utilization). 
+
+
+---
+
 
 # Documentation generated using [terraform-docs](https://terraform-docs.io/).
 
@@ -359,9 +405,12 @@ No providers.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_alb"></a> [alb](#module\_alb) | ./modules/alb | n/a |
+| <a name="module_autoscaling_group"></a> [autoscaling\_group](#module\_autoscaling\_group) | ./modules/autoscaling_group | n/a |
+| <a name="module_cloudwatch-agent"></a> [cloudwatch-agent](#module\_cloudwatch-agent) | ./modules/cloudwatch-agent | n/a |
 | <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
 | <a name="module_config"></a> [config](#module\_config) | ./modules/config | n/a |
 | <a name="module_iam"></a> [iam](#module\_iam) | ./modules/iam | n/a |
+| <a name="module_launch_template"></a> [launch\_template](#module\_launch\_template) | ./modules/launch_template | n/a |
 | <a name="module_logging"></a> [logging](#module\_logging) | ./modules/logging | n/a |
 | <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | ./modules/monitoring | n/a |
 | <a name="module_networking"></a> [networking](#module\_networking) | ./modules/networking | n/a |
