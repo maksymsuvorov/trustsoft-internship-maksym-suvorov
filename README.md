@@ -173,7 +173,13 @@ yes > /dev/null
 ```
 
 - I have deleted this script and killed the process. After an hour, the process was created again. So the issue was somewhere else. There was some kind of **backdoor** that was starting this script and uploading it after deletion on the EC2 instance.
-- It occurred that there was a python script, named `health-check`, that was starting (uploading) the script.
+- So I have tried to find a service that was restarting this process with command
+```bash
+#!/bin/bash
+systemctl list-timers --all
+```
+- Output was saying that there was a timer, named `health-check.timer`, that was starting (uploading) the script.
+- Content of python script `health-check`
 
 ![Python script](./docs/opts-screenshots/python-script.png)
 
