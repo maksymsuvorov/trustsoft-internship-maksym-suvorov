@@ -105,7 +105,10 @@
 - **CloudWatch Agent** on EC2 for logs and custom metrics  
 - **CloudWatch Alarms** monitoring CPU utilization  
 - **SNS Topic** for email alerts to a configurable list of recipients
->  **Potential Improvements:** Use `for_each` instead of hardcoding multiple aws_cloudwatch_metric_alarm resources
+> **Potential Improvements:**
+> - Refactor alarm resources to use `for_each` for easier scaling and modularity. 
+> - Automate the creation of multiple alarms with a `map` variable to reduce code duplication. 
+> - Consider adding a centralized CloudWatch dashboard for a visual overview of system health.
 
 ---
 
@@ -276,7 +279,12 @@ Then I have attached it to the damaged instance as a **root** volume. **The prob
 
 ![Scaling in](docs/opts-screenshots/scale-in.png)
 
-> These scheduled actions run daily on **weekdays** unless further restricted.
+- These scheduled actions run daily on **weekdays** unless further restricted.
+
+> **Potential Improvements:**
+> - Add ASG lifecycle hooks to gracefully drain traffic from instances before termination. 
+> - Parameterize scheduled scaling times based on environment (dev/staging/prod). 
+> - Implement dynamic scaling policies using CloudWatch anomaly detection for smarter scale-in/out.
 
 ---
 
@@ -402,6 +410,10 @@ terraform destroy
 > - AWS_SECRET_ACCESS_KEY
 > - AWS_SESSION_TOKEN
 ---
+
+> **Potential improvements:** add Linting and Security Checks in CI/CD. Extend GitHub Actions with:
+> - [tflint](https://github.com/terraform-linters/tflint)
+> - [tfsec](https://github.com/aquasecurity/tfsec)
 
 
 # Documentation generated using [terraform-docs](https://terraform-docs.io/).
