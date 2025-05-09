@@ -16,7 +16,8 @@
 7. [Deploying Infrastructure](#deploying)
 8. [Cleaning Up Infrastructure](#cleaning-up)
 9. [Testing the Infrastructure](#testing)
-9. [Documentation via terraform-docs](#documentation-generated-using-terraform-docs)
+10. [CI/CD](#cicd)
+11. [Documentation via terraform-docs](#documentation-generated-using-terraform-docs)
 
 ---
 
@@ -104,7 +105,7 @@
 - **CloudWatch Agent** on EC2 for logs and custom metrics  
 - **CloudWatch Alarms** monitoring CPU utilization  
 - **SNS Topic** for email alerts to a configurable list of recipients
->  Use `for_each` instead of hardcoding multiple aws_cloudwatch_metric_alarm resources
+>  **Potential Improvements:** Use `for_each` instead of hardcoding multiple aws_cloudwatch_metric_alarm resources
 
 ---
 
@@ -387,7 +388,19 @@ terraform destroy
 - Auto Scaling
   - All tests are described [here](#auto-scaling-group-policies-based-on-cpu-utilization). 
 
+# CI/CD
+- **Manually triggered**.
+- Includes:
+  - Initializing Terraform 
+  - Formatting & validating code 
+  - Planning changes 
+  - Applying infrastructure changes to AWS 
+  - Cleaning up temporary files
 
+> **GitHub Secrets Required**. Make sure these secrets are defined in GitHub repo settings:
+> - AWS_ACCESS_KEY_ID
+> - AWS_SECRET_ACCESS_KEY
+> - AWS_SESSION_TOKEN
 ---
 
 
