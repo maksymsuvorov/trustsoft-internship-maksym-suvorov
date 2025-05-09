@@ -167,7 +167,7 @@
 
 - The PID 1 of the process often indicates that it is a system process that starts right after the boot. It was named `systemd-helper` and its name says, that it was managed by `systemd` service. The content of the file was
 
-```shell
+```bash
 #!/bin/bash
 yes > /dev/null
 ```
@@ -198,7 +198,7 @@ yes > /dev/null
 - So I created a snapshot of the instance volume via the **AWS console** and created a new volume using this snapshot. 
 - Then I have created a new EC2 instance (in the same AZ used by the damaged instance) and attached the newly created volume as a **secondary** volume. After connecting to the helper instance and mounting the new volume to the new EC2 instance's FS with 
 
-```shell
+```bash
 sudo mkdir /mnt/rescue
 sudo mount xvf /dev/xvdf1 /mnt/rescue
 ```
