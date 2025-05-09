@@ -362,7 +362,7 @@ terraform apply    # Deploys resources
 ```
 terraform destroy
 ```
-> Warning: Terraform does not destroy AWS Flow Log Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)
+> **Warning: Terraform does not destroy AWS Flow Log Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)**
 
 ---
 
