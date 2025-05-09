@@ -199,6 +199,7 @@ yes > /dev/null
 - Then I have created a new EC2 instance (in the same AZ used by the damaged instance) and attached the newly created volume as a **secondary** volume. After connecting to the helper instance and mounting the new volume to the new EC2 instance's FS with 
 
 ```bash
+#!/bin/bash
 sudo mkdir /mnt/rescue
 sudo mount xvf /dev/xvdf1 /mnt/rescue
 ```
@@ -216,7 +217,8 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 - The first issue was that someone has mounted the same **UUID** twice to `/`, which is invalid and will cause boot failures.
 - The second issue was that `mnt/kaput` does not exist in the system.
 - After deleting the first and the last rows, I have unmounted the volume from the helper EC2 instance.
-```
+```bash
+#!/bin/bash
 sudo umount /mnt/rescue
 ```
 Then I have attached it to the damaged instance as a **root** volume. **The problem was solved.**
