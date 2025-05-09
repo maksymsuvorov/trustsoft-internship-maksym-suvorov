@@ -15,6 +15,7 @@
 6. [IaC. Project Structure](#iac)
 7. [Deploying Infrastructure](#deploying)
 8. [Cleaning Up Infrastructure](#cleaning-up)
+9. [Testing the Infrastructure](#testing)
 9. [Documentation via terraform-docs](#documentation-generated-using-terraform-docs)
 
 ---
