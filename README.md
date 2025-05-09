@@ -114,6 +114,8 @@
   - **SSE-KMS** encryption encrypts state files at rest using customer-managed keys.
 - State locking **without DynamoDB** using S3 native locking.
 
+![Remote Backend](./docs/remote-backend.png)
+
 ### 5.5.2025
 
 ## VPC Flow Logs into CloudWatch
@@ -130,6 +132,8 @@
 - Config stored in **SSM Parameter Store**, preventing sensitive information (like credentials or internal metrics config) from being stored in plain text within Terraform code or `user_data`.
 - Installed via **SSM Document** + **Association**.
 - SSm Association Automatically applies the installation document to EC2 instances tagged with `Monitoring=enabled`.
+
+- ![CloudWatch](./docs/cloudwatch.png)
 
 ## EC2 Status Check Alarm
 - Ensures the instance is healthy on OS level.
