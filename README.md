@@ -216,7 +216,7 @@ UUID=11111111-2222-3333-4444-555555555555 /mnt/kaput xfs defaults 0 2
 - The first issue was that someone has mounted the same **UUID** twice to `/`, which is invalid and will cause boot failures.
 - The second issue was that `mnt/kaput` does not exist in the system.
 - After deleting the first and the last rows, I have unmounted the volume from the helper EC2 instance.
-```shell
+```
 sudo umount /mnt/rescue
 ```
 Then I have attached it to the damaged instance as a **root** volume. **The problem was solved.**
@@ -359,7 +359,7 @@ terraform apply    # Deploys resources
 ---
 
 # Cleaning Up
-```terraform
+```hcl
 terraform destroy
 ```
 > **Warning: Terraform does not destroy AWS Flow Log Groups. You have to destroy them manually via the AWS console. [Opened Bug on GitHub](https://github.com/hashicorp/terraform-provider-aws/issues/29247)**
